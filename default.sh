@@ -44,6 +44,19 @@ CLIP_MODELS=()
 LORA_MODELS=()
 CONTROLNET_MODELS=()
 ESRGAN_MODELS=()
+ULTRALYTICS_MODELS=()
+SAM_MODELS=()
+
+# Ultralytics models (YOLOv8)
+ULTRALYTICS_MODELS=(
+    "https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8m.pt"
+    "https://huggingface.co/Bingsu/adetailer/resolve/main/person_yolov8m-seg.pt"
+)
+
+# SAM models
+SAM_MODELS=(
+    "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth"
+)
 
 ### DO NOT EDIT BELOW HERE UNLESS YOU KNOW WHAT YOU ARE DOING ###
 
@@ -84,8 +97,10 @@ function provisioning_start() {
     provisioning_get_nodes
     provisioning_get_pip_packages
 
-    # Create checkpoints directory
+    # Create model directories
     mkdir -p "${WORKSPACE}/ComfyUI/models/checkpoints"
+    mkdir -p "${WORKSPACE}/ComfyUI/models/ultralytics"
+    mkdir -p "${WORKSPACE}/ComfyUI/models/sams"
 
     # Download models to appropriate directories
     provisioning_get_models \
@@ -109,6 +124,12 @@ function provisioning_start() {
     provisioning_get_models \
         "${WORKSPACE}/storage/stable_diffusion/models/esrgan" \
         "${ESRGAN_MODELS[@]}"
+    provisioning_get_models \
+        "${WORKSPACE}/ComfyUI/models/ultralytics" \
+        "${ULTRALYTICS_MODELS[@]}"
+    provisioning_get_models \
+        "${WORKSPACE}/ComfyUI/models/sams" \
+        "${SAM_MODELS[@]}"
     provisioning_get_workflows
     provisioning_print_end
 }
