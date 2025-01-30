@@ -30,6 +30,7 @@ NODES=(
 	"https://github.com/KoreTeknology/ComfyUI-Universal-Styler"
 	"https://github.com/LarryJane491/Lora-Training-in-Comfy"
 	"https://github.com/LarryJane491/Image-Captioning-in-ComfyUI"
+    "https://github.com/Fannovel16/ComfyUI-Frame-Interpolation"
 )
 
 WORKFLOWS=(
@@ -86,7 +87,7 @@ function provisioning_start() {
     # Add Civitai models if token is valid
     if provisioning_has_valid_civitai_token; then
         CHECKPOINT_MODELS+=(
-            "https://civitai.com/api/download/models/782002?type=Model&format=SafeTensor&size=full&fp=fp16"
+            "https://civitai.com/api/download/models/782002"
             "https://civitai.com/api/download/models/919063?type=Model&format=SafeTensor&size=full&fp=fp16"
             "https://civitai.com/api/download/models/277058?type=Model&format=SafeTensor&size=full&fp=fp16"
         )
