@@ -38,7 +38,9 @@ WORKFLOWS=(
 )
 
 # Initialize empty arrays for models
-CHECKPOINT_MODELS=()
+CHECKPOINT_MODELS=(
+    "https://huggingface.co/RunDiffusion/Juggernaut-XI-v11/blob/main/Juggernaut-XI-byRunDiffusion.safetensors"
+)
 UNET_MODELS=()
 VAE_MODELS=()
 CLIP_MODELS=()
