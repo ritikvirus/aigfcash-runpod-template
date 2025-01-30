@@ -36,39 +36,15 @@ WORKFLOWS=(
 	"https://github.com/kingaigfcash/aigfcash-runpod-template.git"
 )
 
-CHECKPOINT_MODELS=(
-	"https://civitai.com/api/download/models/782002?type=Model&format=SafeTensor&size=full&fp=fp16"
-	"https://civitai.com/api/download/models/919063?type=Model&format=SafeTensor&size=full&fp=fp16"
-	"https://civitai.com/api/download/models/1346244?type=Model&format=SafeTensor&size=pruned&fp=fp16"
-)
+# Initialize empty arrays for models
+CHECKPOINT_MODELS=()
+UNET_MODELS=()
+VAE_MODELS=()
+CLIP_MODELS=()
+LORA_MODELS=()
+CONTROLNET_MODELS=()
+ESRGAN_MODELS=()
 
-UNET_MODELS=(
-	#"https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/flux1-dev.sft"
-)
-
-CLIP_MODELS=(
-	"https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/clip_l.safetensors"
-	"https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/t5xxl_fp16.safetensors"
-)
-
-LORA_MODELS=(
-	#"https://huggingface.co/mushroomfleet/Flux-Lora-Collection/resolve/main/AssassinKahb-8-16-e9-10.safetensors"
-)
-
-VAE_MODELS=(
-    #"https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/ae.sft"
-    #"https://huggingface.co/stabilityai/sdxl-vae/resolve/main/sdxl_vae.safetensors"
-)
-
-ESRGAN_MODELS=(
-    #"https://huggingface.co/ai-forever/Real-ESRGAN/resolve/main/RealESRGAN_x4.pth"
-    #"https://huggingface.co/FacehugmanIII/4x_foolhardy_Remacri/resolve/main/4x_foolhardy_Remacri.pth"
-    #"https://huggingface.co/Akumetsu971/SD_Anime_Futuristic_Armor/resolve/main/4x_NMKD-Siax_200k.pth"
-)
-
-CONTROLNET_MODELS=(
-	#"https://huggingface.co/XLabs-AI/flux-controlnet-collections/resolve/main/flux-hed-controlnet-v3.safetensors"
-)
 ### DO NOT EDIT BELOW HERE UNLESS YOU KNOW WHAT YOU ARE DOING ###
 
 function provisioning_start() {
@@ -78,6 +54,13 @@ function provisioning_start() {
     source /opt/ai-dock/etc/environment.sh
     source /opt/ai-dock/bin/venv-set.sh comfyui
 
+    # Initialize CLIP models (these are required)
+    CLIP_MODELS=(
+        "https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/clip_l.safetensors"
+        "https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/t5xxl_fp16.safetensors"
+    )
+
+    # Add HuggingFace models if token is valid
     if provisioning_has_valid_hf_token; then
         UNET_MODELS+=("https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/flux1-dev.safetensors")
         VAE_MODELS+=("https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/ae.safetensors")
@@ -87,6 +70,7 @@ function provisioning_start() {
         sed -i 's/flux1-dev\.safetensors/flux1-schnell.safetensors/g' /opt/ComfyUI/web/scripts/defaultGraph.js
     fi
 
+    # Add Civitai models if token is valid
     if provisioning_has_valid_civitai_token; then
         CHECKPOINT_MODELS+=(
             "https://civitai.com/api/download/models/782002?type=Model&format=SafeTensor&size=full&fp=fp16"
@@ -103,6 +87,7 @@ function provisioning_start() {
     # Create checkpoints directory
     mkdir -p "${WORKSPACE}/ComfyUI/models/checkpoints"
 
+    # Download models to appropriate directories
     provisioning_get_models \
         "${WORKSPACE}/ComfyUI/models/checkpoints" \
         "${CHECKPOINT_MODELS[@]}"
@@ -210,8 +195,7 @@ function provisioning_get_default_workflow() {
 
 function provisioning_get_models() {
     if [[ -z $2 ]]; then return 1; fi
-    
-    dir="$1"
+    dir=$(normalize_path "$1")
     mkdir -p "$dir"
     shift
     arr=("$@")
@@ -221,6 +205,11 @@ function provisioning_get_models() {
         provisioning_download "${url}" "${dir}"
         printf "\n"
     done
+}
+
+# Normalize path to remove any double slashes
+normalize_path() {
+    echo "${1//\/\///}"
 }
 
 function provisioning_print_header() {
