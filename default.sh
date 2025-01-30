@@ -90,8 +90,8 @@ function provisioning_start() {
     if provisioning_has_valid_civitai_token; then
         CHECKPOINT_MODELS+=(
             "https://civitai.com/api/download/models/782002"
-            "https://civitai.com/api/download/models/919063?type=Model&format=SafeTensor&size=full&fp=fp16"
-            "https://civitai.com/api/download/models/277058?type=Model&format=SafeTensor&size=full&fp=fp16"
+            "https://civitai.com/api/download/models/919063"
+            "https://civitai.com/api/download/models/277058"
         )
     fi
 
@@ -281,16 +281,66 @@ function provisioning_has_valid_civitai_token() {
 
 # Download from $1 URL to $2 file path
 function provisioning_download() {
-    if [[ -n $HF_TOKEN && $1 =~ ^https://([a-zA-Z0-9_-]+\.)?huggingface\.co(/|$|\?) ]]; then
+    local url="$1"
+    local target_dir="$2"
+    local auth_token=""
+    local response=""
+    local filename=""
+
+    echo "Attempting to download from: $url"
+    echo "Target directory: $target_dir"
+
+    # Set auth token based on URL
+    if [[ -n $HF_TOKEN && $url =~ ^https://([a-zA-Z0-9_-]+\.)?huggingface\.co(/|$|\?) ]]; then
         auth_token="$HF_TOKEN"
-    elif 
-        [[ -n $CIVITAI_TOKEN && $1 =~ ^https://([a-zA-Z0-9_-]+\.)?civitai\.com(/|$|\?) ]]; then
+        echo "Using HuggingFace token"
+    elif [[ -n $CIVITAI_TOKEN && $url =~ ^https://([a-zA-Z0-9_-]+\.)?civitai\.com(/|$|\?) ]]; then
         auth_token="$CIVITAI_TOKEN"
+        echo "Using CivitAI token"
+        
+        # For CivitAI, first get the download URL
+        if [[ $url =~ /api/download/models/([0-9]+) ]]; then
+            local model_id="${BASH_REMATCH[1]}"
+            echo "Detected CivitAI model ID: $model_id"
+            
+            # Get the actual download URL
+            response=$(curl -s -H "Authorization: Bearer $CIVITAI_TOKEN" "https://civitai.com/api/v1/model-versions/$model_id")
+            url=$(echo "$response" | grep -o '"downloadUrl":"[^"]*"' | cut -d'"' -f4)
+            
+            if [[ -z $url ]]; then
+                echo "ERROR: Failed to get download URL for CivitAI model $model_id"
+                echo "API Response: $response"
+                return 1
+            fi
+            echo "Retrieved CivitAI download URL: $url"
+        fi
     fi
-    if [[ -n $auth_token ]];then
-        wget --header="Authorization: Bearer $auth_token" -qnc --content-disposition --show-progress -e dotbytes="${3:-4M}" -P "$2" "$1"
+
+    # Create target directory if it doesn't exist
+    mkdir -p "$target_dir"
+
+    # Download the file
+    if [[ -n $auth_token ]]; then
+        echo "Downloading with authentication..."
+        wget --header="Authorization: Bearer $auth_token" -qnc --content-disposition --show-progress -e dotbytes="${3:-4M}" -P "$target_dir" "$url" || {
+            echo "ERROR: Failed to download $url"
+            return 1
+        }
     else
-        wget -qnc --content-disposition --show-progress -e dotbytes="${3:-4M}" -P "$2" "$1"
+        echo "Downloading without authentication..."
+        wget -qnc --content-disposition --show-progress -e dotbytes="${3:-4M}" -P "$target_dir" "$url" || {
+            echo "ERROR: Failed to download $url"
+            return 1
+        }
+    fi
+
+    # Verify the download
+    if [[ -f "$target_dir"/* ]]; then
+        echo "Successfully downloaded to $target_dir"
+        ls -lh "$target_dir"
+    else
+        echo "ERROR: File not found in $target_dir after download"
+        return 1
     fi
 }
 
