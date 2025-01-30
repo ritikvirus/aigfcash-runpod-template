@@ -99,6 +99,10 @@ function provisioning_start() {
     provisioning_get_apt_packages
     provisioning_get_nodes
     provisioning_get_pip_packages
+
+    # Create checkpoints directory
+    mkdir -p "${WORKSPACE}/ComfyUI/models/checkpoints"
+
     provisioning_get_models \
         "${WORKSPACE}/ComfyUI/models/checkpoints" \
         "${CHECKPOINT_MODELS[@]}"
