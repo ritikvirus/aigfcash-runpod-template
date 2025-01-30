@@ -33,7 +33,7 @@ NODES=(
 )
 
 WORKFLOWS=(
-	"https://github.com/kingaigfcash/aigfcash-runpod-template/tree/9e3c54553228d0f0cfba8d6a98d6029f1c00ba6c/workflows"
+	"https://github.com/kingaigfcash/aigfcash-runpod-template.git"
 )
 
 CHECKPOINT_MODELS=(
@@ -100,7 +100,7 @@ function provisioning_start() {
     provisioning_get_nodes
     provisioning_get_pip_packages
     provisioning_get_models \
-        "${WORKSPACE}/storage/stable_diffusion/models/ckpt" \
+        "/opt/ComfyUI/models/checkpoints" \
         "${CHECKPOINT_MODELS[@]}"
     provisioning_get_models \
         "${WORKSPACE}/storage/stable_diffusion/models/unet" \
@@ -170,15 +170,27 @@ function provisioning_get_nodes() {
 function provisioning_get_workflows() {
     for repo in "${WORKFLOWS[@]}"; do
         dir=$(basename "$repo" .git)
-        path="/opt/ComfyUI/user/default/workflows/${dir}"
-        if [[ -d "$path" ]]; then
+        temp_path="/tmp/${dir}"
+        target_path="/opt/ComfyUI/user/default/workflows"
+        
+        # Clone or update the repository
+        if [[ -d "$temp_path" ]]; then
             if [[ ${AUTO_UPDATE,,} != "false" ]]; then
                 printf "Updating workflows: %s...\n" "${repo}"
-                ( cd "$path" && git pull )
+                ( cd "$temp_path" && git pull )
             fi
         else
             printf "Cloning workflows: %s...\n" "${repo}"
-            git clone "$repo" "$path"
+            git clone "$repo" "$temp_path"
+        fi
+        
+        # Create workflows directory if it doesn't exist
+        mkdir -p "$target_path"
+        
+        # Copy workflow files to the target directory
+        if [[ -d "$temp_path/workflows" ]]; then
+            cp -r "$temp_path/workflows"/* "$target_path/"
+            printf "Copied workflows to: %s\n" "$target_path"
         fi
     done
 }
