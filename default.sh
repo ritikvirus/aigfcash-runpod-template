@@ -100,7 +100,7 @@ function provisioning_start() {
     provisioning_get_nodes
     provisioning_get_pip_packages
     provisioning_get_models \
-        "/opt/ComfyUI/models/checkpoints" \
+        "${WORKSPACE}/ComfyUI/models/checkpoints" \
         "${CHECKPOINT_MODELS[@]}"
     provisioning_get_models \
         "${WORKSPACE}/storage/stable_diffusion/models/unet" \
@@ -147,7 +147,7 @@ function provisioning_get_pip_packages() {
 function provisioning_get_nodes() {
     for repo in "${NODES[@]}"; do
         dir="${repo##*/}"
-        path="/opt/ComfyUI/custom_nodes/${dir}"
+        path="${WORKSPACE}/ComfyUI/custom_nodes/${dir}"
         requirements="${path}/requirements.txt"
         if [[ -d $path ]]; then
             if [[ ${AUTO_UPDATE,,} != "false" ]]; then
@@ -171,7 +171,7 @@ function provisioning_get_workflows() {
     for repo in "${WORKFLOWS[@]}"; do
         dir=$(basename "$repo" .git)
         temp_path="/tmp/${dir}"
-        target_path="/opt/ComfyUI/user/default/workflows"
+        target_path="${WORKSPACE}/ComfyUI/user/default/workflows"
         
         # Clone or update the repository
         if [[ -d "$temp_path" ]]; then
@@ -199,7 +199,7 @@ function provisioning_get_default_workflow() {
     if [[ -n $DEFAULT_WORKFLOW ]]; then
         workflow_json=$(curl -s "$DEFAULT_WORKFLOW")
         if [[ -n $workflow_json ]]; then
-            echo "export const defaultGraph = $workflow_json;" > /opt/ComfyUI/web/scripts/defaultGraph.js
+            echo "export const defaultGraph = $workflow_json;" > "${WORKSPACE}/ComfyUI/web/scripts/defaultGraph.js"
         fi
     fi
 }
