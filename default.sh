@@ -39,7 +39,7 @@ WORKFLOWS=(
 
 # Initialize empty arrays for models
 CHECKPOINT_MODELS=(
-    "https://huggingface.co/RunDiffusion/Juggernaut-XI-v11/blob/main/Juggernaut-XI-byRunDiffusion.safetensors"
+    "https://huggingface.co/RunDiffusion/Juggernaut-XI-v11/resolve/main/Juggernaut-XI-byRunDiffusion.safetensors"
 )
 UNET_MODELS=()
 VAE_MODELS=()
@@ -50,8 +50,8 @@ ESRGAN_MODELS=()
 
 # Ultralytics models (YOLOv8)
 ULTRALYTICS_MODELS=(
-    "https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8m.pt"
-    "https://huggingface.co/Bingsu/adetailer/resolve/main/person_yolov8m-seg.pt"
+    "https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8m_v2.pt"
+    "https://huggingface.co/Bingsu/adetailer/resolve/main/person_yolov8m-seg_v2.pt"
 )
 
 # SAM models
@@ -76,11 +76,11 @@ function provisioning_start() {
 
     # Add HuggingFace models if token is valid
     if provisioning_has_valid_hf_token; then
-        CHECKPOINT_MODELS+=("https://huggingface.co/RunDiffusion/Juggernaut-XI-v11/blob/main/Juggernaut-XI-byRunDiffusion.safetensors")
+        CHECKPOINT_MODELS+=("https://huggingface.co/RunDiffusion/Juggernaut-XI-v11/resolve/main/Juggernaut-XI-byRunDiffusion.safetensors")
         UNET_MODELS+=("https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/flux1-dev.safetensors")
         VAE_MODELS+=("https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/ae.safetensors")
     else
-        CHECKPOINT_MODELS+=("https://huggingface.co/RunDiffusion/Juggernaut-XI-v11/blob/main/Juggernaut-XI-byRunDiffusion.safetensors")
+        CHECKPOINT_MODELS+=("https://huggingface.co/RunDiffusion/Juggernaut-XI-v11/resolve/main/Juggernaut-XI-byRunDiffusion.safetensors")
         UNET_MODELS+=("https://huggingface.co/black-forest-labs/FLUX.1-schnell/resolve/main/flux1-schnell.safetensors")
         VAE_MODELS+=("https://huggingface.co/black-forest-labs/FLUX.1-schnell/resolve/main/ae.safetensors")
         sed -i 's/flux1-dev\.safetensors/flux1-schnell.safetensors/g' /opt/ComfyUI/web/scripts/defaultGraph.js
