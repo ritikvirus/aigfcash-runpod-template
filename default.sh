@@ -47,6 +47,9 @@ CLIP_MODELS=()
 LORA_MODELS=()
 CONTROLNET_MODELS=()
 ESRGAN_MODELS=()
+INSIGHTFACE_MODELS=(
+    "https://huggingface.co/deepinsight/inswapper/resolve/main/inswapper_128.onnx"
+)
 
 # Ultralytics models (YOLOv8)
 ULTRALYTICS_MODELS=(
@@ -104,6 +107,7 @@ function provisioning_start() {
     mkdir -p "${WORKSPACE}/ComfyUI/models/checkpoints"
     mkdir -p "${WORKSPACE}/ComfyUI/models/ultralytics"
     mkdir -p "${WORKSPACE}/ComfyUI/models/sams"
+    mkdir -p "${WORKSPACE}/ComfyUI/models/insightface"
 
     # Download models to appropriate directories
     provisioning_get_models \
@@ -133,6 +137,9 @@ function provisioning_start() {
     provisioning_get_models \
         "${WORKSPACE}/ComfyUI/models/sams" \
         "${SAM_MODELS[@]}"
+    provisioning_get_models \
+        "${WORKSPACE}/ComfyUI/models/insightface" \
+        "${INSIGHTFACE_MODELS[@]}"
     provisioning_get_workflows
     provisioning_print_end
 }
@@ -343,5 +350,22 @@ function provisioning_download() {
         return 1
     fi
 }
+
+if provisioning_has_valid_hf_token; then
+    echo "Downloading $(echo ${ULTRALYTICS_MODELS[@]} | wc -w) model(s) to $WORKSPACE/ComfyUI/models/ultralytics..."
+    for url in "${ULTRALYTICS_MODELS[@]}"; do
+        provisioning_download "$url" "$WORKSPACE/ComfyUI/models/ultralytics"
+    done
+
+    echo "Downloading $(echo ${SAM_MODELS[@]} | wc -w) model(s) to $WORKSPACE/ComfyUI/models/sams..."
+    for url in "${SAM_MODELS[@]}"; do
+        provisioning_download "$url" "$WORKSPACE/ComfyUI/models/sams"
+    done
+
+    echo "Downloading $(echo ${INSIGHTFACE_MODELS[@]} | wc -w) model(s) to $WORKSPACE/ComfyUI/models/insightface..."
+    for url in "${INSIGHTFACE_MODELS[@]}"; do
+        provisioning_download "$url" "$WORKSPACE/ComfyUI/models/insightface"
+    done
+fi
 
 provisioning_start
