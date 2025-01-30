@@ -87,6 +87,14 @@ function provisioning_start() {
         sed -i 's/flux1-dev\.safetensors/flux1-schnell.safetensors/g' /opt/ComfyUI/web/scripts/defaultGraph.js
     fi
 
+    if provisioning_has_valid_civitai_token; then
+        CHECKPOINT_MODELS+=(
+            "https://civitai.com/api/download/models/782002?type=Model&format=SafeTensor&size=full&fp=fp16"
+            "https://civitai.com/api/download/models/919063?type=Model&format=SafeTensor&size=full&fp=fp16"
+            "https://civitai.com/api/download/models/277058?type=Model&format=SafeTensor&size=full&fp=fp16"
+        )
+    fi
+
     provisioning_print_header
     provisioning_get_apt_packages
     provisioning_get_nodes
