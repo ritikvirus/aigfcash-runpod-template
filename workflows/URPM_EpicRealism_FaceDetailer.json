@@ -512,7 +512,7 @@
         "Node name for S&R": "CheckpointLoaderSimple"
       },
       "widgets_values": [
-        "juggernautXL_juggXIByRundiffusion.safetensors"
+        "Juggernaut-XI-byRunDiffusion.safetensors"
       ]
     },
     {
@@ -560,7 +560,7 @@
         "Node name for S&R": "CheckpointLoaderSimple"
       },
       "widgets_values": [
-        "uberRealisticPornMergePonyxl_xlV6Final.safetensors"
+        "Juggernaut-XI-byRunDiffusion.safetensors"
       ]
     },
     {

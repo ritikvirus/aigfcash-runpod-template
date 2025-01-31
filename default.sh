@@ -40,6 +40,7 @@ WORKFLOWS=(
 # Initialize empty arrays for models
 CHECKPOINT_MODELS=(
     "https://huggingface.co/RunDiffusion/Juggernaut-XI-v11/resolve/main/Juggernaut-XI-byRunDiffusion.safetensors"
+    "https://huggingface.co/John6666/epicrealism-xl-v8kiss-sdxl/resolve/main/epicrealismXL_vx1Finalkiss.safetensors"
 )
 UNET_MODELS=()
 VAE_MODELS=()
@@ -52,12 +53,14 @@ INSIGHTFACE_MODELS=(
 )
 
 # Ultralytics models (YOLOv8)
-ULTRALYTICS_MODELS=(
+ULTRALYTICS_BBOX_MODELS=(
     "https://huggingface.co/datasets/Gourieff/ReActor/resolve/main/models/detection/bbox/face_yolov8m.pt"
+)
+
+ULTRALYTICS_SEGM_MODELS=(
     "https://huggingface.co/Bingsu/adetailer/resolve/main/person_yolov8m-seg_v2.pt"
 )
 
-# SAM models
 SAM_MODELS=(
     "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth"
 )
@@ -105,7 +108,8 @@ function provisioning_start() {
 
     # Create model directories
     mkdir -p "${WORKSPACE}/ComfyUI/models/checkpoints"
-    mkdir -p "${WORKSPACE}/ComfyUI/models/ultralytics"
+    mkdir -p "${WORKSPACE}/ComfyUI/models/ultralytics/bbox"
+    mkdir -p "${WORKSPACE}/ComfyUI/models/ultralytics/segm"
     mkdir -p "${WORKSPACE}/ComfyUI/models/sams"
     mkdir -p "${WORKSPACE}/ComfyUI/models/insightface"
 
@@ -132,8 +136,11 @@ function provisioning_start() {
         "${WORKSPACE}/storage/stable_diffusion/models/esrgan" \
         "${ESRGAN_MODELS[@]}"
     provisioning_get_models \
-        "${WORKSPACE}/ComfyUI/models/ultralytics" \
-        "${ULTRALYTICS_MODELS[@]}"
+        "${WORKSPACE}/ComfyUI/models/ultralytics/bbox" \
+        "${ULTRALYTICS_BBOX_MODELS[@]}"
+    provisioning_get_models \
+        "${WORKSPACE}/ComfyUI/models/ultralytics/segm" \
+        "${ULTRALYTICS_SEGM_MODELS[@]}"
     provisioning_get_models \
         "${WORKSPACE}/ComfyUI/models/sams" \
         "${SAM_MODELS[@]}"
@@ -312,12 +319,12 @@ function provisioning_download() {
             
             # Get the actual download URL
             echo "Fetching model info from CivitAI API for model ID: $model_id"
-            response=$(curl -s -H "Authorization: Bearer $CIVITAI_TOKEN" "https://civitai.com/api/v1/model-versions/$model_id")
+            response=$(curl -s -H "Authorization: Bearer $CIVITAI_TOKEN" "https://civitai.com/api/v1/models/$model_id")
             
             # Extract download URL and filename
-            url=$(echo "$response" | jq -r '.downloadUrl')
-            local model_name=$(echo "$response" | jq -r '.model.name' | tr ' ' '_')
-            local model_version=$(echo "$response" | jq -r '.name' | tr ' ' '_')
+            url=$(echo "$response" | jq -r '.modelVersions[0].downloadUrl')
+            local model_name=$(echo "$response" | jq -r '.name' | tr ' ' '_')
+            local model_version=$(echo "$response" | jq -r '.modelVersions[0].name' | tr ' ' '_')
             filename="${model_name}_${model_version}.safetensors"
             
             if [[ $url == "null" || -z $url ]]; then
@@ -384,11 +391,13 @@ function download_ultralytics_models() {
     echo "Creating Ultralytics models directory at: $target_dir"
     mkdir -p "$target_dir"
 
-    echo "Found ${#ULTRALYTICS_MODELS[@]} Ultralytics models to download..."
+    echo "Found ${#ULTRALYTICS_BBOX_MODELS[@]} bbox models to download..."
+    echo "Found ${#ULTRALYTICS_SEGM_MODELS[@]} segm models to download..."
     
-    for url in "${ULTRALYTICS_MODELS[@]}"; do
+    echo "Downloading bbox models to $WORKSPACE/ComfyUI/models/ultralytics/bbox..."
+    for url in "${ULTRALYTICS_BBOX_MODELS[@]}"; do
         echo "----------------------------------------"
-        echo "Downloading Ultralytics model from: $url"
+        echo "Downloading Ultralytics bbox model from: $url"
         
         # Verify URL is accessible
         if ! curl -s --head -H "Authorization: Bearer $HF_TOKEN" "$url" | grep -q "200 OK"; then
@@ -399,22 +408,55 @@ function download_ultralytics_models() {
         fi
         
         echo "URL verified, starting download..."
-        if ! provisioning_download "$url" "$target_dir"; then
+        if ! provisioning_download "$url" "$WORKSPACE/ComfyUI/models/ultralytics/bbox"; then
             echo "ERROR: Failed to download $url"
             echo "Checking target directory contents:"
-            ls -la "$target_dir"
+            ls -la "$WORKSPACE/ComfyUI/models/ultralytics/bbox"
             continue
         fi
         
         # Verify downloaded file
         local filename=$(basename "$url")
-        if [[ -f "$target_dir/$filename" ]]; then
+        if [[ -f "$WORKSPACE/ComfyUI/models/ultralytics/bbox/$filename" ]]; then
             echo "Successfully downloaded: $filename"
-            echo "File size: $(du -h "$target_dir/$filename" | cut -f1)"
+            echo "File size: $(du -h "$WORKSPACE/ComfyUI/models/ultralytics/bbox/$filename" | cut -f1)"
         else
             echo "ERROR: File not found after download: $filename"
             echo "Directory contents:"
-            ls -la "$target_dir"
+            ls -la "$WORKSPACE/ComfyUI/models/ultralytics/bbox"
+        fi
+    done
+    
+    echo "Downloading segm models to $WORKSPACE/ComfyUI/models/ultralytics/segm..."
+    for url in "${ULTRALYTICS_SEGM_MODELS[@]}"; do
+        echo "----------------------------------------"
+        echo "Downloading Ultralytics segm model from: $url"
+        
+        # Verify URL is accessible
+        if ! curl -s --head -H "Authorization: Bearer $HF_TOKEN" "$url" | grep -q "200 OK"; then
+            echo "ERROR: URL not accessible: $url"
+            echo "Response headers:"
+            curl -s --head -H "Authorization: Bearer $HF_TOKEN" "$url"
+            continue
+        fi
+        
+        echo "URL verified, starting download..."
+        if ! provisioning_download "$url" "$WORKSPACE/ComfyUI/models/ultralytics/segm"; then
+            echo "ERROR: Failed to download $url"
+            echo "Checking target directory contents:"
+            ls -la "$WORKSPACE/ComfyUI/models/ultralytics/segm"
+            continue
+        fi
+        
+        # Verify downloaded file
+        local filename=$(basename "$url")
+        if [[ -f "$WORKSPACE/ComfyUI/models/ultralytics/segm/$filename" ]]; then
+            echo "Successfully downloaded: $filename"
+            echo "File size: $(du -h "$WORKSPACE/ComfyUI/models/ultralytics/segm/$filename" | cut -f1)"
+        else
+            echo "ERROR: File not found after download: $filename"
+            echo "Directory contents:"
+            ls -la "$WORKSPACE/ComfyUI/models/ultralytics/segm"
         fi
     done
 }
