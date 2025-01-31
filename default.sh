@@ -94,7 +94,7 @@ function provisioning_start() {
         CHECKPOINT_MODELS+=(
             "https://civitai.com/api/download/models/782002"
             "https://civitai.com/api/download/models/919063"
-            "https://civitai.com/api/download/models/277058"
+            "https://civitai.com/api/download/models/1346244"
         )
     fi
 
@@ -313,11 +313,13 @@ function provisioning_download() {
             # Get the actual download URL
             echo "Fetching model info from CivitAI API for model ID: $model_id"
             response=$(curl -s -H "Authorization: Bearer $CIVITAI_TOKEN" "https://civitai.com/api/v1/model-versions/$model_id")
-            echo "Full API Response:"
-            echo "$response" | jq '.'
             
-            # Extract download URL
+            # Extract download URL and filename
             url=$(echo "$response" | jq -r '.downloadUrl')
+            local model_name=$(echo "$response" | jq -r '.model.name' | tr ' ' '_')
+            local model_version=$(echo "$response" | jq -r '.name' | tr ' ' '_')
+            filename="${model_name}_${model_version}.safetensors"
+            
             if [[ $url == "null" || -z $url ]]; then
                 echo "ERROR: Failed to get download URL for CivitAI model $model_id"
                 echo "Response status: $(echo "$response" | jq -r '.status')"
@@ -325,6 +327,7 @@ function provisioning_download() {
                 return 1
             fi
             echo "Will download from URL: $url"
+            echo "Will save as: $filename"
         fi
     fi
 
@@ -332,10 +335,12 @@ function provisioning_download() {
     mkdir -p "$target_dir"
 
     # Get filename from URL
-    filename=$(basename "$url")
     if [[ -z $filename ]]; then
-        echo "ERROR: Could not determine filename from URL"
-        return 1
+        filename=$(basename "$url")
+        if [[ -z $filename ]]; then
+            echo "ERROR: Could not determine filename from URL"
+            return 1
+        fi
     fi
 
     # Full path to target file
