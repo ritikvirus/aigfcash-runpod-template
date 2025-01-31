@@ -58,7 +58,7 @@ ULTRALYTICS_BBOX_MODELS=(
 )
 
 ULTRALYTICS_SEGM_MODELS=(
-    "https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt"
+    "https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-seg.pt"
 )
 
 SAM_MODELS=(
@@ -317,18 +317,23 @@ function provisioning_download() {
             local model_id="${BASH_REMATCH[1]}"
             echo "Detected CivitAI model ID: $model_id"
             
-            # Follow redirect to get the actual download URL
-            local redirect_url=$(curl -sIL -H "Authorization: Bearer $CIVITAI_TOKEN" "$url" | grep -i "^location:" | tail -n1 | cut -d' ' -f2 | tr -d '\r\n')
-            echo "Redirect URL: $redirect_url"
-            
-            if [[ -n "$redirect_url" ]]; then
-                filename=$(basename "$redirect_url")
-                # Clean up any URL parameters
-                filename=${filename%%\?*}
-                echo "Extracted filename: $filename"
+            # Use specific filename for known model IDs
+            if [[ "$model_id" == "919063" ]]; then
+                filename="uberRealisticPornMergePonyxl_xlV6Final.safetensors"
             else
-                echo "Warning: Could not get redirect URL, using fallback name"
-                filename="model_${model_id}.safetensors"
+                # Follow redirect to get the actual download URL
+                local redirect_url=$(curl -sIL -H "Authorization: Bearer $CIVITAI_TOKEN" "$url" | grep -i "^location:" | tail -n1 | cut -d' ' -f2 | tr -d '\r\n')
+                echo "Redirect URL: $redirect_url"
+                
+                if [[ -n "$redirect_url" ]]; then
+                    filename=$(basename "$redirect_url")
+                    # Clean up any URL parameters
+                    filename=${filename%%\?*}
+                    echo "Extracted filename: $filename"
+                else
+                    echo "Warning: Could not get redirect URL, using fallback name"
+                    filename="model_${model_id}.safetensors"
+                fi
             fi
             
             echo "Will save as: $filename"
