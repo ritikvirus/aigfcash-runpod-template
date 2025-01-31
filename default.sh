@@ -95,9 +95,9 @@ function provisioning_start() {
     # Add Civitai models if token is valid
     if provisioning_has_valid_civitai_token; then
         CHECKPOINT_MODELS+=(
-            "https://civitai.com/api/download/models/782002"
+            #"https://civitai.com/api/download/models/782002"
             "https://civitai.com/api/download/models/919063"
-            "https://civitai.com/api/download/models/1346244"
+            #"https://civitai.com/api/download/models/1346244"
         )
     fi
 
