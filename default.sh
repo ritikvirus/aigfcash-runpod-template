@@ -341,14 +341,14 @@ function provisioning_download() {
     # Full path to target file
     local target_file="$target_dir/$filename"
 
-    # Download the file using curl with progress
+    # Download the file using curl with minimal output
     echo "Downloading to: $target_file"
     if [[ -n $auth_token ]]; then
         echo "Downloading with authentication..."
-        curl -L --progress-bar -H "Authorization: Bearer $auth_token" -o "$target_file" "$url"
+        curl -sS -L -H "Authorization: Bearer $auth_token" -o "$target_file" "$url"
     else
         echo "Downloading without authentication..."
-        curl -L --progress-bar -o "$target_file" "$url"
+        curl -sS -L -o "$target_file" "$url"
     fi
 
     # Verify download
