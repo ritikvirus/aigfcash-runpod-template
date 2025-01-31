@@ -311,61 +311,126 @@ function provisioning_download() {
             echo "Detected CivitAI model ID: $model_id"
             
             # Get the actual download URL
+            echo "Fetching model info from CivitAI API for model ID: $model_id"
             response=$(curl -s -H "Authorization: Bearer $CIVITAI_TOKEN" "https://civitai.com/api/v1/model-versions/$model_id")
-            url=$(echo "$response" | grep -o '"downloadUrl":"[^"]*"' | cut -d'"' -f4)
+            echo "Full API Response:"
+            echo "$response" | jq '.'
             
-            if [[ -z $url ]]; then
+            # Extract download URL
+            url=$(echo "$response" | jq -r '.downloadUrl')
+            if [[ $url == "null" || -z $url ]]; then
                 echo "ERROR: Failed to get download URL for CivitAI model $model_id"
-                echo "API Response: $response"
+                echo "Response status: $(echo "$response" | jq -r '.status')"
+                echo "Response message: $(echo "$response" | jq -r '.message')"
                 return 1
             fi
-            echo "Retrieved CivitAI download URL: $url"
+            echo "Will download from URL: $url"
         fi
     fi
 
     # Create target directory if it doesn't exist
     mkdir -p "$target_dir"
 
-    # Download the file
-    if [[ -n $auth_token ]]; then
-        echo "Downloading with authentication..."
-        wget --header="Authorization: Bearer $auth_token" -qnc --content-disposition --show-progress -e dotbytes="${3:-4M}" -P "$target_dir" "$url" || {
-            echo "ERROR: Failed to download $url"
-            return 1
-        }
-    else
-        echo "Downloading without authentication..."
-        wget -qnc --content-disposition --show-progress -e dotbytes="${3:-4M}" -P "$target_dir" "$url" || {
-            echo "ERROR: Failed to download $url"
-            return 1
-        }
+    # Get filename from URL
+    filename=$(basename "$url")
+    if [[ -z $filename ]]; then
+        echo "ERROR: Could not determine filename from URL"
+        return 1
     fi
 
-    # Verify the download
-    if [[ -f "$target_dir"/* ]]; then
-        echo "Successfully downloaded to $target_dir"
-        ls -lh "$target_dir"
+    # Full path to target file
+    local target_file="$target_dir/$filename"
+
+    # Download the file using curl with progress
+    echo "Downloading to: $target_file"
+    if [[ -n $auth_token ]]; then
+        echo "Downloading with authentication..."
+        curl -L --progress-bar -H "Authorization: Bearer $auth_token" -o "$target_file" "$url"
     else
-        echo "ERROR: File not found in $target_dir after download"
+        echo "Downloading without authentication..."
+        curl -L --progress-bar -o "$target_file" "$url"
+    fi
+
+    # Verify download
+    if [[ -f "$target_file" ]]; then
+        local filesize=$(stat -f%z "$target_file" 2>/dev/null || stat -c%s "$target_file" 2>/dev/null)
+        if [[ $filesize -gt 0 ]]; then
+            echo "Successfully downloaded: $filename ($(numfmt --to=iec-i --suffix=B $filesize))"
+            return 0
+        else
+            echo "ERROR: Downloaded file is empty"
+            rm -f "$target_file"
+            return 1
+        fi
+    else
+        echo "ERROR: File not found after download"
         return 1
     fi
 }
 
-if provisioning_has_valid_hf_token; then
-    echo "Downloading $(echo ${ULTRALYTICS_MODELS[@]} | wc -w) model(s) to $WORKSPACE/ComfyUI/models/ultralytics..."
-    for url in "${ULTRALYTICS_MODELS[@]}"; do
-        provisioning_download "$url" "$WORKSPACE/ComfyUI/models/ultralytics"
-    done
+function download_ultralytics_models() {
+    local target_dir="$WORKSPACE/ComfyUI/models/ultralytics"
+    
+    if ! provisioning_has_valid_hf_token; then
+        echo "ERROR: Invalid or missing Hugging Face token. Cannot download Ultralytics models."
+        return 1
+    fi
 
+    echo "Creating Ultralytics models directory at: $target_dir"
+    mkdir -p "$target_dir"
+
+    echo "Found ${#ULTRALYTICS_MODELS[@]} Ultralytics models to download..."
+    
+    for url in "${ULTRALYTICS_MODELS[@]}"; do
+        echo "----------------------------------------"
+        echo "Downloading Ultralytics model from: $url"
+        
+        # Verify URL is accessible
+        if ! curl -s --head -H "Authorization: Bearer $HF_TOKEN" "$url" | grep -q "200 OK"; then
+            echo "ERROR: URL not accessible: $url"
+            echo "Response headers:"
+            curl -s --head -H "Authorization: Bearer $HF_TOKEN" "$url"
+            continue
+        fi
+        
+        echo "URL verified, starting download..."
+        if ! provisioning_download "$url" "$target_dir"; then
+            echo "ERROR: Failed to download $url"
+            echo "Checking target directory contents:"
+            ls -la "$target_dir"
+            continue
+        fi
+        
+        # Verify downloaded file
+        local filename=$(basename "$url")
+        if [[ -f "$target_dir/$filename" ]]; then
+            echo "Successfully downloaded: $filename"
+            echo "File size: $(du -h "$target_dir/$filename" | cut -f1)"
+        else
+            echo "ERROR: File not found after download: $filename"
+            echo "Directory contents:"
+            ls -la "$target_dir"
+        fi
+    done
+}
+
+if provisioning_has_valid_hf_token; then
+    echo "Starting Ultralytics models download..."
+    download_ultralytics_models
+    
+    echo "Starting SAM models download..."
     echo "Downloading $(echo ${SAM_MODELS[@]} | wc -w) model(s) to $WORKSPACE/ComfyUI/models/sams..."
     for url in "${SAM_MODELS[@]}"; do
         provisioning_download "$url" "$WORKSPACE/ComfyUI/models/sams"
     done
-
+    
+    echo "Starting Insightface models download..."
     echo "Downloading $(echo ${INSIGHTFACE_MODELS[@]} | wc -w) model(s) to $WORKSPACE/ComfyUI/models/insightface..."
     for url in "${INSIGHTFACE_MODELS[@]}"; do
         provisioning_download "$url" "$WORKSPACE/ComfyUI/models/insightface"
     done
+else
+    echo "ERROR: Invalid Hugging Face token. Cannot download models."
 fi
 
 provisioning_start
