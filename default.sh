@@ -48,12 +48,12 @@ LORA_MODELS=()
 CONTROLNET_MODELS=()
 ESRGAN_MODELS=()
 INSIGHTFACE_MODELS=(
-    "https://huggingface.co/deepinsight/inswapper/resolve/main/inswapper_128.onnx"
+    "https://huggingface.co/datasets/Gourieff/ReActor/resolve/main/models/inswapper_128.onnx"
 )
 
 # Ultralytics models (YOLOv8)
 ULTRALYTICS_MODELS=(
-    "https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8m_v2.pt"
+    "https://huggingface.co/datasets/Gourieff/ReActor/resolve/main/models/detection/bbox/face_yolov8m.pt"
     "https://huggingface.co/Bingsu/adetailer/resolve/main/person_yolov8m-seg_v2.pt"
 )
 
