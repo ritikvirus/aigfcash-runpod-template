@@ -54,7 +54,7 @@ INSIGHTFACE_MODELS=(
 
 # Ultralytics models (YOLOv8)
 ULTRALYTICS_BBOX_MODELS=(
-    "https://huggingface.co/datasets/Gourieff/ReActor/resolve/main/models/detection/bbox/face_yolov8m.pt"
+    "https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8m.pt"
 )
 
 ULTRALYTICS_SEGM_MODELS=(
@@ -363,91 +363,27 @@ function provisioning_download() {
     fi
 }
 
-function download_ultralytics_models() {
-    local target_dir="$WORKSPACE/ComfyUI/models/ultralytics"
-    
-    if ! provisioning_has_valid_hf_token; then
-        echo "ERROR: Invalid or missing Hugging Face token. Cannot download Ultralytics models."
-        return 1
-    fi
-
-    echo "Creating Ultralytics models directory at: $target_dir"
-    mkdir -p "$target_dir"
-
-    echo "Found ${#ULTRALYTICS_BBOX_MODELS[@]} bbox models to download..."
-    echo "Found ${#ULTRALYTICS_SEGM_MODELS[@]} segm models to download..."
-    
-    echo "Downloading bbox models to $WORKSPACE/ComfyUI/models/ultralytics/bbox..."
-    for url in "${ULTRALYTICS_BBOX_MODELS[@]}"; do
-        echo "----------------------------------------"
-        echo "Downloading Ultralytics bbox model from: $url"
-        
-        # Verify URL is accessible
-        if ! curl -s --head -H "Authorization: Bearer $HF_TOKEN" "$url" | grep -q "200 OK"; then
-            echo "ERROR: URL not accessible: $url"
-            echo "Response headers:"
-            curl -s --head -H "Authorization: Bearer $HF_TOKEN" "$url"
-            continue
-        fi
-        
-        echo "URL verified, starting download..."
-        if ! provisioning_download "$url" "$WORKSPACE/ComfyUI/models/ultralytics/bbox"; then
-            echo "ERROR: Failed to download $url"
-            echo "Checking target directory contents:"
-            ls -la "$WORKSPACE/ComfyUI/models/ultralytics/bbox"
-            continue
-        fi
-        
-        # Verify downloaded file
-        local filename=$(basename "$url")
-        if [[ -f "$WORKSPACE/ComfyUI/models/ultralytics/bbox/$filename" ]]; then
-            echo "Successfully downloaded: $filename"
-            echo "File size: $(du -h "$WORKSPACE/ComfyUI/models/ultralytics/bbox/$filename" | cut -f1)"
-        else
-            echo "ERROR: File not found after download: $filename"
-            echo "Directory contents:"
-            ls -la "$WORKSPACE/ComfyUI/models/ultralytics/bbox"
-        fi
-    done
-    
-    echo "Downloading segm models to $WORKSPACE/ComfyUI/models/ultralytics/segm..."
-    for url in "${ULTRALYTICS_SEGM_MODELS[@]}"; do
-        echo "----------------------------------------"
-        echo "Downloading Ultralytics segm model from: $url"
-        
-        # Verify URL is accessible
-        if ! curl -s --head -H "Authorization: Bearer $HF_TOKEN" "$url" | grep -q "200 OK"; then
-            echo "ERROR: URL not accessible: $url"
-            echo "Response headers:"
-            curl -s --head -H "Authorization: Bearer $HF_TOKEN" "$url"
-            continue
-        fi
-        
-        echo "URL verified, starting download..."
-        if ! provisioning_download "$url" "$WORKSPACE/ComfyUI/models/ultralytics/segm"; then
-            echo "ERROR: Failed to download $url"
-            echo "Checking target directory contents:"
-            ls -la "$WORKSPACE/ComfyUI/models/ultralytics/segm"
-            continue
-        fi
-        
-        # Verify downloaded file
-        local filename=$(basename "$url")
-        if [[ -f "$WORKSPACE/ComfyUI/models/ultralytics/segm/$filename" ]]; then
-            echo "Successfully downloaded: $filename"
-            echo "File size: $(du -h "$WORKSPACE/ComfyUI/models/ultralytics/segm/$filename" | cut -f1)"
-        else
-            echo "ERROR: File not found after download: $filename"
-            echo "Directory contents:"
-            ls -la "$WORKSPACE/ComfyUI/models/ultralytics/segm"
-        fi
-    done
-}
-
 if provisioning_has_valid_hf_token; then
-    echo "Starting Ultralytics models download..."
-    download_ultralytics_models
-    
+    echo "Downloading bbox models..."
+    for url in "${ULTRALYTICS_BBOX_MODELS[@]}"; do
+        filename=$(basename "$url")
+        target_dir="$WORKSPACE/ComfyUI/models/ultralytics/bbox"
+        if ! provisioning_download "$url" "$target_dir"; then
+            echo "ERROR: Failed to download bbox model"
+            continue
+        fi
+    done
+
+    echo "Downloading segm models..."
+    for url in "${ULTRALYTICS_SEGM_MODELS[@]}"; do
+        filename=$(basename "$url")
+        target_dir="$WORKSPACE/ComfyUI/models/ultralytics/segm"
+        if ! provisioning_download "$url" "$target_dir"; then
+            echo "ERROR: Failed to download segm model"
+            continue
+        fi
+    done
+
     echo "Starting SAM models download..."
     echo "Downloading $(echo ${SAM_MODELS[@]} | wc -w) model(s) to $WORKSPACE/ComfyUI/models/sams..."
     for url in "${SAM_MODELS[@]}"; do
