@@ -58,7 +58,7 @@ ULTRALYTICS_BBOX_MODELS=(
 )
 
 ULTRALYTICS_SEGM_MODELS=(
-    "https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-seg.pt"
+    "https://huggingface.co/Bingsu/adetailer/resolve/main/person_yolov8m-seg_v2.pt"
 )
 
 SAM_MODELS=(
@@ -82,11 +82,11 @@ function provisioning_start() {
 
     # Add HuggingFace models if token is valid
     if provisioning_has_valid_hf_token; then
-        #CHECKPOINT_MODELS+=("https://huggingface.co/RunDiffusion/Juggernaut-XI-v11/resolve/main/Juggernaut-XI-byRunDiffusion.safetensors")
+        CHECKPOINT_MODELS+=("https://huggingface.co/RunDiffusion/Juggernaut-XI-v11/resolve/main/Juggernaut-XI-byRunDiffusion.safetensors")
         #UNET_MODELS+=("https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/flux1-dev.safetensors")
         #VAE_MODELS+=("https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/ae.safetensors")
     else
-        #CHECKPOINT_MODELS+=("https://huggingface.co/RunDiffusion/Juggernaut-XI-v11/resolve/main/Juggernaut-XI-byRunDiffusion.safetensors")
+        CHECKPOINT_MODELS+=("https://huggingface.co/RunDiffusion/Juggernaut-XI-v11/resolve/main/Juggernaut-XI-byRunDiffusion.safetensors")
         #UNET_MODELS+=("https://huggingface.co/black-forest-labs/FLUX.1-schnell/resolve/main/flux1-schnell.safetensors")
         #VAE_MODELS+=("https://huggingface.co/black-forest-labs/FLUX.1-schnell/resolve/main/ae.safetensors")
         sed -i 's/flux1-dev\.safetensors/flux1-schnell.safetensors/g' /opt/ComfyUI/web/scripts/defaultGraph.js
@@ -95,9 +95,9 @@ function provisioning_start() {
     # Add Civitai models if token is valid
     if provisioning_has_valid_civitai_token; then
         CHECKPOINT_MODELS+=(
-            #"https://civitai.com/api/download/models/782002"
+            "https://civitai.com/api/download/models/782002"
             "https://civitai.com/api/download/models/919063"
-            #"https://civitai.com/api/download/models/1346244"
+            "https://civitai.com/api/download/models/1346244"
         )
     fi
 
@@ -312,30 +312,25 @@ function provisioning_download() {
         auth_token="$CIVITAI_TOKEN"
         echo "Using CivitAI token"
         
-        # For CivitAI, get the actual filename from the redirect URL
+        # For CivitAI, get the actual filename from headers
         if [[ $url =~ /api/download/models/([0-9]+) ]]; then
             local model_id="${BASH_REMATCH[1]}"
             echo "Detected CivitAI model ID: $model_id"
             
-            # Use specific filename for known model IDs
-            if [[ "$model_id" == "919063" ]]; then
-                filename="uberRealisticPornMergePonyxl_xlV6Final.safetensors"
+            # Get the filename from Content-Disposition header
+            local headers=$(curl -sI -H "Authorization: Bearer $CIVITAI_TOKEN" "$url")
+            if [[ $headers =~ Content-Disposition:.*filename=\"?([^\";\r\n]+) ]]; then
+                filename="${BASH_REMATCH[1]}"
             else
-                # Follow redirect to get the actual download URL
-                local redirect_url=$(curl -sIL -H "Authorization: Bearer $CIVITAI_TOKEN" "$url" | grep -i "^location:" | tail -n1 | cut -d' ' -f2 | tr -d '\r\n')
-                echo "Redirect URL: $redirect_url"
-                
+                # Fallback: Try to get filename from redirect URL
+                local redirect_url=$(curl -sI -H "Authorization: Bearer $CIVITAI_TOKEN" "$url" | grep -i "^location:" | cut -d' ' -f2 | tr -d '\r')
                 if [[ -n "$redirect_url" ]]; then
                     filename=$(basename "$redirect_url")
-                    # Clean up any URL parameters
-                    filename=${filename%%\?*}
-                    echo "Extracted filename: $filename"
                 else
-                    echo "Warning: Could not get redirect URL, using fallback name"
+                    # Last resort fallback
                     filename="model_${model_id}.safetensors"
                 fi
             fi
-            
             echo "Will save as: $filename"
         fi
     fi
