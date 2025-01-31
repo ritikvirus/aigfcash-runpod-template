@@ -312,28 +312,11 @@ function provisioning_download() {
         auth_token="$CIVITAI_TOKEN"
         echo "Using CivitAI token"
         
-        # For CivitAI, first get the download URL
+        # For CivitAI, handle the filename
         if [[ $url =~ /api/download/models/([0-9]+) ]]; then
             local model_id="${BASH_REMATCH[1]}"
             echo "Detected CivitAI model ID: $model_id"
-            
-            # Get the actual download URL
-            echo "Fetching model info from CivitAI API for model ID: $model_id"
-            response=$(curl -s -H "Authorization: Bearer $CIVITAI_TOKEN" "https://civitai.com/api/v1/models/$model_id")
-            
-            # Extract download URL and filename
-            url=$(echo "$response" | jq -r '.modelVersions[0].downloadUrl')
-            local model_name=$(echo "$response" | jq -r '.name' | tr ' ' '_')
-            local model_version=$(echo "$response" | jq -r '.modelVersions[0].name' | tr ' ' '_')
-            filename="${model_name}_${model_version}.safetensors"
-            
-            if [[ $url == "null" || -z $url ]]; then
-                echo "ERROR: Failed to get download URL for CivitAI model $model_id"
-                echo "Response status: $(echo "$response" | jq -r '.status')"
-                echo "Response message: $(echo "$response" | jq -r '.message')"
-                return 1
-            fi
-            echo "Will download from URL: $url"
+            filename="civitai_model_${model_id}.safetensors"
             echo "Will save as: $filename"
         fi
     fi
