@@ -312,11 +312,25 @@ function provisioning_download() {
         auth_token="$CIVITAI_TOKEN"
         echo "Using CivitAI token"
         
-        # For CivitAI, handle the filename
+        # For CivitAI, get the actual filename from headers
         if [[ $url =~ /api/download/models/([0-9]+) ]]; then
             local model_id="${BASH_REMATCH[1]}"
             echo "Detected CivitAI model ID: $model_id"
-            filename="civitai_model_${model_id}.safetensors"
+            
+            # Get the filename from Content-Disposition header
+            local headers=$(curl -sI -H "Authorization: Bearer $CIVITAI_TOKEN" "$url")
+            if [[ $headers =~ Content-Disposition:.*filename=\"?([^\";\r\n]+) ]]; then
+                filename="${BASH_REMATCH[1]}"
+            else
+                # Fallback: Try to get filename from redirect URL
+                local redirect_url=$(curl -sI -H "Authorization: Bearer $CIVITAI_TOKEN" "$url" | grep -i "^location:" | cut -d' ' -f2 | tr -d '\r')
+                if [[ -n "$redirect_url" ]]; then
+                    filename=$(basename "$redirect_url")
+                else
+                    # Last resort fallback
+                    filename="model_${model_id}.safetensors"
+                fi
+            fi
             echo "Will save as: $filename"
         fi
     fi
@@ -366,7 +380,7 @@ function provisioning_download() {
 if provisioning_has_valid_hf_token; then
     echo "Downloading bbox models..."
     for url in "${ULTRALYTICS_BBOX_MODELS[@]}"; do
-        filename=$(basename "$url")
+        filename="face_yolov8m.pt"  # Fixed filename for bbox
         target_dir="$WORKSPACE/ComfyUI/models/ultralytics/bbox"
         if ! provisioning_download "$url" "$target_dir"; then
             echo "ERROR: Failed to download bbox model"
@@ -376,7 +390,7 @@ if provisioning_has_valid_hf_token; then
 
     echo "Downloading segm models..."
     for url in "${ULTRALYTICS_SEGM_MODELS[@]}"; do
-        filename=$(basename "$url")
+        filename="person_yolov8m-seg_v2.pt"  # Fixed filename for segm
         target_dir="$WORKSPACE/ComfyUI/models/ultralytics/segm"
         if ! provisioning_download "$url" "$target_dir"; then
             echo "ERROR: Failed to download segm model"
