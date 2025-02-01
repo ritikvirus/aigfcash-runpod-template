@@ -58,7 +58,7 @@ ULTRALYTICS_BBOX_MODELS=(
 )
 
 ULTRALYTICS_SEGM_MODELS=(
-    "https://huggingface.co/Bingsu/adetailer/resolve/main/person_yolov8m-seg_v2.pt"
+    "https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt"
 )
 
 SAM_MODELS=(
