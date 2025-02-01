@@ -41,6 +41,7 @@ WORKFLOWS=(
 CHECKPOINT_MODELS=(
     "https://huggingface.co/RunDiffusion/Juggernaut-XI-v11/resolve/main/Juggernaut-XI-byRunDiffusion.safetensors"
     "https://huggingface.co/John6666/epicrealism-xl-v8kiss-sdxl/resolve/main/epicrealismXL_vx1Finalkiss.safetensors"
+    "https://huggingface.co/TheImposterImposters/URPM-v2.3Final/resolve/main/uberRealisticPornMerge_v23Final.safetensors"
 )
 UNET_MODELS=()
 VAE_MODELS=()
@@ -96,7 +97,7 @@ function provisioning_start() {
     if provisioning_has_valid_civitai_token; then
         CHECKPOINT_MODELS+=(
             #"https://civitai.com/api/download/models/782002"
-            "https://civitai.com/api/download/models/919063"
+            #"https://civitai.com/api/download/models/919063"
             #"https://civitai.com/api/download/models/1346244"
         )
     fi
@@ -390,7 +391,7 @@ if provisioning_has_valid_hf_token; then
 
     echo "Downloading segm models..."
     for url in "${ULTRALYTICS_SEGM_MODELS[@]}"; do
-        filename="person_yolov8m-seg_v2.pt"  # Fixed filename for segm
+        filename="yolov8m-seg.pt"  # Fixed filename for segm
         target_dir="$WORKSPACE/ComfyUI/models/ultralytics/segm"
         if ! provisioning_download "$url" "$target_dir"; then
             echo "ERROR: Failed to download segm model"
