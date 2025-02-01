@@ -76,8 +76,8 @@ function provisioning_start() {
 
     # Initialize CLIP models (these are required)
     CLIP_MODELS=(
-        "https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/clip_l.safetensors"
-        "https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/t5xxl_fp16.safetensors"
+        #"https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/clip_l.safetensors"
+        #"https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/t5xxl_fp16.safetensors"
     )
 
     # Add HuggingFace models if token is valid
