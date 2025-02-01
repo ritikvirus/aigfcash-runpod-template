@@ -334,46 +334,38 @@ function provisioning_download() {
             fi
             echo "Will save as: $filename"
         fi
-    fi
-
-    # Create target directory if it doesn't exist
-    mkdir -p "$target_dir"
-
-    # Get filename from URL
-    if [[ -z $filename ]]; then
+    else
         filename=$(basename "$url")
-        if [[ -z $filename ]]; then
-            echo "ERROR: Could not determine filename from URL"
-            return 1
-        fi
     fi
 
-    # Full path to target file
     local target_file="$target_dir/$filename"
 
-    # Download the file using curl with minimal output
-    echo "Downloading to: $target_file"
-    if [[ -n $auth_token ]]; then
-        echo "Downloading with authentication..."
-        curl -sS -L -H "Authorization: Bearer $auth_token" -o "$target_file" "$url"
-    else
-        echo "Downloading without authentication..."
-        curl -sS -L -o "$target_file" "$url"
+    # Check if file already exists
+    if [[ -f "$target_file" ]]; then
+        echo "File already exists: $target_file"
+        return 0
     fi
 
-    # Verify download
-    if [[ -f "$target_file" ]]; then
-        local filesize=$(stat -f%z "$target_file" 2>/dev/null || stat -c%s "$target_file" 2>/dev/null)
-        if [[ $filesize -gt 0 ]]; then
-            echo "Successfully downloaded: $filename ($(numfmt --to=iec-i --suffix=B $filesize))"
-            return 0
-        else
-            echo "ERROR: Downloaded file is empty"
-            rm -f "$target_file"
-            return 1
-        fi
+    echo "Attempting to download from: $url"
+    echo "Target directory: $target_dir"
+    echo "Downloading to: $target_file"
+
+    if [[ -n $auth_token ]]; then
+        echo "Downloading with authentication..."
+        curl -L --progress-bar -H "Authorization: Bearer $auth_token" -o "$target_file" "$url"
     else
-        echo "ERROR: File not found after download"
+        echo "Downloading without authentication..."
+        curl -L --progress-bar -o "$target_file" "$url"
+    fi
+
+    # Check if download was successful
+    if [[ $? -eq 0 ]]; then
+        echo "Successfully downloaded: $filename"
+        return 0
+    else
+        echo "ERROR: Failed to download: $filename"
+        # Remove partial download if it exists
+        rm -f "$target_file"
         return 1
     fi
 }
