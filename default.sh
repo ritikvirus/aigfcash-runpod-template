@@ -212,7 +212,7 @@ function provisioning_get_workflows() {
             git clone "$repo" "$temp_path"
         fi
         
-        # Create workflows directory if it doesn't exist
+        # Create workflows directory if it does not exist
         mkdir -p "$target_path"
         
         # Copy workflow files to the target directory
