@@ -76,15 +76,15 @@ function provisioning_start() {
 
     # Initialize CLIP models (these are required)
     CLIP_MODELS=(
-        "https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/clip_l.safetensors"
-        "https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/t5xxl_fp16.safetensors"
+        #"https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/clip_l.safetensors"
+        #"https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/t5xxl_fp16.safetensors"
     )
 
     # Add HuggingFace models if token is valid
     if provisioning_has_valid_hf_token; then
         #CHECKPOINT_MODELS+=("https://huggingface.co/RunDiffusion/Juggernaut-XI-v11/resolve/main/Juggernaut-XI-byRunDiffusion.safetensors")
-        UNET_MODELS+=("https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/flux1-dev.safetensors")
-        VAE_MODELS+=("https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/ae.safetensors")
+        #UNET_MODELS+=("https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/flux1-dev.safetensors")
+        #VAE_MODELS+=("https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/ae.safetensors")
     else
         #CHECKPOINT_MODELS+=("https://huggingface.co/RunDiffusion/Juggernaut-XI-v11/resolve/main/Juggernaut-XI-byRunDiffusion.safetensors")
         #UNET_MODELS+=("https://huggingface.co/black-forest-labs/FLUX.1-schnell/resolve/main/flux1-schnell.safetensors")
