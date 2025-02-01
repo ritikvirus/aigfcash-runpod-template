@@ -82,11 +82,11 @@ function provisioning_start() {
 
     # Add HuggingFace models if token is valid
     if provisioning_has_valid_hf_token; then
-        CHECKPOINT_MODELS+=("https://huggingface.co/RunDiffusion/Juggernaut-XI-v11/resolve/main/Juggernaut-XI-byRunDiffusion.safetensors")
+        #CHECKPOINT_MODELS+=("https://huggingface.co/RunDiffusion/Juggernaut-XI-v11/resolve/main/Juggernaut-XI-byRunDiffusion.safetensors")
         #UNET_MODELS+=("https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/flux1-dev.safetensors")
         #VAE_MODELS+=("https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/ae.safetensors")
     else
-        CHECKPOINT_MODELS+=("https://huggingface.co/RunDiffusion/Juggernaut-XI-v11/resolve/main/Juggernaut-XI-byRunDiffusion.safetensors")
+        #CHECKPOINT_MODELS+=("https://huggingface.co/RunDiffusion/Juggernaut-XI-v11/resolve/main/Juggernaut-XI-byRunDiffusion.safetensors")
         #UNET_MODELS+=("https://huggingface.co/black-forest-labs/FLUX.1-schnell/resolve/main/flux1-schnell.safetensors")
         #VAE_MODELS+=("https://huggingface.co/black-forest-labs/FLUX.1-schnell/resolve/main/ae.safetensors")
         sed -i 's/flux1-dev\.safetensors/flux1-schnell.safetensors/g' /opt/ComfyUI/web/scripts/defaultGraph.js
@@ -317,18 +317,23 @@ function provisioning_download() {
             local model_id="${BASH_REMATCH[1]}"
             echo "Detected CivitAI model ID: $model_id"
             
-            # Get the filename from Content-Disposition header
-            local headers=$(curl -sI -H "Authorization: Bearer $CIVITAI_TOKEN" "$url")
-            if [[ $headers =~ Content-Disposition:.*filename=\"?([^\";\r\n]+) ]]; then
-                filename="${BASH_REMATCH[1]}"
+            # Special case for model 919063
+            if [[ "$model_id" == "919063" ]]; then
+                filename="uberRealisticPornMergePonyxl_xlV6Final.safetensors"
             else
-                # Fallback: Try to get filename from redirect URL
-                local redirect_url=$(curl -sI -H "Authorization: Bearer $CIVITAI_TOKEN" "$url" | grep -i "^location:" | cut -d' ' -f2 | tr -d '\r')
-                if [[ -n "$redirect_url" ]]; then
-                    filename=$(basename "$redirect_url")
+                # Get the filename from Content-Disposition header
+                local headers=$(curl -sI -H "Authorization: Bearer $CIVITAI_TOKEN" "$url")
+                if [[ $headers =~ Content-Disposition:.*filename=\"?([^\";\r\n]+) ]]; then
+                    filename="${BASH_REMATCH[1]}"
                 else
-                    # Last resort fallback
-                    filename="model_${model_id}.safetensors"
+                    # Fallback: Try to get filename from redirect URL
+                    local redirect_url=$(curl -sI -H "Authorization: Bearer $CIVITAI_TOKEN" "$url" | grep -i "^location:" | cut -d' ' -f2 | tr -d '\r')
+                    if [[ -n "$redirect_url" ]]; then
+                        filename=$(basename "$redirect_url")
+                    else
+                        # Last resort fallback
+                        filename="model_${model_id}.safetensors"
+                    fi
                 fi
             fi
             echo "Will save as: $filename"
