@@ -31,6 +31,7 @@ NODES=(
 	"https://github.com/LarryJane491/Lora-Training-in-Comfy"
 	"https://github.com/LarryJane491/Image-Captioning-in-ComfyUI"
     "https://github.com/Fannovel16/ComfyUI-Frame-Interpolation"
+    "https://github.com/mpiquero1111/ComfyUI-SaveImgPrompt"
 )
 
 WORKFLOWS=(
