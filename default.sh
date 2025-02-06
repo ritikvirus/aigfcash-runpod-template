@@ -114,6 +114,11 @@ function provisioning_start() {
     mkdir -p "${WORKSPACE}/ComfyUI/models/sams"
     mkdir -p "${WORKSPACE}/ComfyUI/models/insightface"
 
+    # Sync initial input from ComfyUI to workspace and remove original
+    rsync -av /ComfyUI/input/ /workspace/input/
+    rm -rf /ComfyUI/input
+    ln -sf /workspace/input /ComfyUI/input
+
     # Download models to appropriate directories
     provisioning_get_models \
         "${WORKSPACE}/ComfyUI/models/checkpoints" \
