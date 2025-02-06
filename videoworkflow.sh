@@ -75,7 +75,6 @@ function provisioning_start() {
     fi
     source /opt/ai-dock/etc/environment.sh
     source /opt/ai-dock/bin/venv-set.sh comfyui
-    source "$(dirname "$0")/download_models.sh"
 
     provisioning_print_header
     provisioning_get_apt_packages
@@ -125,7 +124,6 @@ function provisioning_start() {
         "${INSIGHTFACE_MODELS[@]}"
     provisioning_get_workflows
     provisioning_print_end
-    start_additional_downloads
 }
 
 function pip_install() {
