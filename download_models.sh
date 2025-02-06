@@ -51,8 +51,14 @@ echo "Starting model downloads..."
 
 # epicrealismXL_vxiiiAb3ast
 download_model \
-    "https://civitai.com/api/download/models/1346244?token=3acdfc9715cdb424e1474dea73e648f6?type=Model&format=SafeTensor&size=pruned&fp=fp16" \
-    "$WORKSPACE_PATH/checkpoints/juggernautXL_juggXIByRundiffusion.safetensors"
+    "https://civitai.com/api/download/models/1346244?type=Model&format=SafeTensor&size=pruned&fp=fp16" \
+    "$WORKSPACE_PATH/checkpoints/epicrealismXL_vxiiiAb3ast.safetensors"
+
+# uberRealisticPornMergePonyxl_ponyxlHybridV1
+download_model \
+    "https://civitai.com/api/download/models/923681?type=Model&format=SafeTensor&size=full&fp=fp16" \
+    "$WORKSPACE_PATH/checkpoints/uberRealisticPornMergePonyxl_ponyxlHybridV1.safetensors"
+
 
 # Photon model
 download_model \
