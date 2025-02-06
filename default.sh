@@ -67,7 +67,6 @@ WORKFLOWS=(
 # Initialize empty arrays for models
 CHECKPOINT_MODELS=(
     "https://huggingface.co/RunDiffusion/Juggernaut-XI-v11/resolve/main/Juggernaut-XI-byRunDiffusion.safetensors"
-    "https://huggingface.co/John6666/epicrealism-xl-v8kiss-sdxl/resolve/main/epicrealismXL_vx1Finalkiss.safetensors"
     "https://huggingface.co/TheImposterImposters/URPM-v2.3Final/resolve/main/uberRealisticPornMerge_v23Final.safetensors"
 )
 UNET_MODELS=()
