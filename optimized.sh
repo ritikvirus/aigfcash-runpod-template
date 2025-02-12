@@ -33,6 +33,8 @@ NODES=(
     "https://github.com/Fannovel16/ComfyUI-Frame-Interpolation"
     "https://github.com/mpiquero1111/ComfyUI-SaveImgPrompt"
     "https://github.com/edenartlab/sd-lora-trainer"
+    "https://github.com/melMass/comfy_mtb"
+    "https://github.com/rgthree/rgthree-comfy"
 )
 
 WORKFLOWS=(
