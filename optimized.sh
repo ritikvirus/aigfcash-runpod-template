@@ -35,6 +35,7 @@ NODES=(
     "https://github.com/edenartlab/sd-lora-trainer"
     "https://github.com/melMass/comfy_mtb"
     "https://github.com/rgthree/rgthree-comfy"
+    "https://github.com/ssitu/ComfyUI_UltimateSDUpscale"
 )
 
 WORKFLOWS=(
