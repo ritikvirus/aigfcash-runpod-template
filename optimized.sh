@@ -34,6 +34,8 @@ NODES=(
     "https://github.com/rgthree/rgthree-comfy"
     "https://github.com/ssitu/ComfyUI_UltimateSDUpscale"
     "https://github.com/if-ai/ComfyUI_IF_AI_LoadImages"
+    "https://github.com/Suzie1/ComfyUI_Comfyroll_CustomNodes"
+    "https://github.com/shiimizu/ComfyUI-TiledDiffusion"
 )
 
 WORKFLOWS=(
