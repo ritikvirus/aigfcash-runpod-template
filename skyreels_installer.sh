@@ -27,11 +27,11 @@ pip install -r custom_nodes/ComfyUI-Crystools/requirements.txt
 git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git custom_nodes/ComfyUI-VideoHelperSuite
 pip install -r custom_nodes/ComfyUI-VideoHelperSuite/requirements.txt
 
-git clone https://github.com/ltdrdata/ComfyUI-Manager.git custom_nodes/comfyui-manager
-pip install -r custom_nodes/comfyui-manager/requirements.txt
-
 git clone https://github.com/kijai/ComfyUI-HunyuanVideoWrapper custom_nodes/ComfyUI-HunyuanVideoWrapper
 pip install -r custom_nodes/ComfyUI-HunyuanVideoWrapper/requirements.txt
+
+git clone https://github.com/kijai/ComfyUI-WanVideoWrapper custom_nodes/ComfyUI-WanVideoWrapper
+pip install -r custom_nodes/ComfyUI-WanVideoWrapper/requirements.txt
 
 cd custom_nodes
 git clone https://github.com/ssitu/ComfyUI_UltimateSDUpscale --recursive
@@ -42,6 +42,18 @@ pip install -r custom_nodes/ComfyUI-Florence2/requirements.txt
 mkdir models/LLM
 
 git clone https://github.com/chengzeyi/Comfy-WaveSpeed custom_nodes/Comfy-WaveSpeed
+
+# Downloading text encoder and VAE
+mkdir -p ComfyUI/models/text_encoders
+aria2c -c -x 16 -s 16 https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors -d ComfyUI/models/text_encoders -o umt5_xxl_fp8_e4m3fn_scaled.safetensors
+
+mkdir -p ComfyUI/models/vae
+aria2c -c -x 16 -s 16 https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/wan_2.1_vae.safetensors -d ComfyUI/models/vae -o wan_2.1_vae.safetensors
+
+# Downloading video models
+mkdir -p ComfyUI/models/diffusion_models
+aria2c -c -x 16 -s 16 https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_t2v_1.3B_fp16.safetensors -d ComfyUI/models/diffusion_models -o wan2.1_t2v_1.3B_fp16.safetensors
+aria2c -c -x 16 -s 16 https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_i2v_720p_14B_fp16.safetensors -d ComfyUI/models/diffusion_models -o wan2.1_i2v_720p_14B_fp16.safetensors
 
 aria2c -c -x 16 -s 16 https://huggingface.co/Kijai/HunyuanVideo_comfy/resolve/main/hunyuan_video_720_cfgdistill_bf16.safetensors -d models/diffusion_models -o hunyuan_video_720_cfgdistill_bf16.safetensors
 aria2c -c -x 16 -s 16 https://huggingface.co/Kijai/HunyuanVideo_comfy/resolve/main/hunyuan_video_720_cfgdistill_fp8_e4m3fn.safetensors -d models/diffusion_models -o hunyuan_video_720_cfgdistill_fp8_e4m3fn.safetensors
