@@ -27,6 +27,9 @@ pip install -r custom_nodes/ComfyUI-Crystools/requirements.txt
 git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git custom_nodes/ComfyUI-VideoHelperSuite
 pip install -r custom_nodes/ComfyUI-VideoHelperSuite/requirements.txt
 
+git clone https://github.com/ltdrdata/ComfyUI-Manager.git custom_nodes/comfyui-manager
+pip install -r custom_nodes/comfyui-manager/requirements.txt
+
 git clone https://github.com/kijai/ComfyUI-HunyuanVideoWrapper custom_nodes/ComfyUI-HunyuanVideoWrapper
 pip install -r custom_nodes/ComfyUI-HunyuanVideoWrapper/requirements.txt
 
