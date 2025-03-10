@@ -44,6 +44,8 @@ NODES=(
     "https://github.com/chflame163/ComfyUI_LayerStyle_Advance"
     "https://github.com/cubiq/ComfyUI_FaceAnalysis"
     "https://github.com/chrisgoringe/cg-use-everywhere"
+    "https://github.com/jakechai/ComfyUI-JakeUpgrade"
+    "https://github.com/cubiq/ComfyUI_IPAdapter_plus"
 )
 
 WORKFLOWS=(
@@ -53,16 +55,13 @@ WORKFLOWS=(
 # Initialize empty arrays for models
 CHECKPOINT_MODELS=(
     "https://huggingface.co/RunDiffusion/Juggernaut-XI-v11/resolve/main/Juggernaut-XI-byRunDiffusion.safetensors"
-    "https://huggingface.co/John6666/epicrealism-xl-v8kiss-sdxl/resolve/main/epicrealismXL_vx1Finalkiss.safetensors"
     "https://huggingface.co/TheImposterImposters/URPM-v2.3Final/resolve/main/uberRealisticPornMerge_v23Final.safetensors"
     "https://huggingface.co/AiWise/epiCRealism-XL-vXI-aBEAST/resolve/5c3950c035ce565d0358b76805de5ef2c74be919/epicrealismXL_vxiAbeast.safetensors"
-    "https://huggingface.co/stabilityai/stable-diffusion-3.5-large/resolve/main/sd3.5_large.safetensors"
 )
 UNET_MODELS=()
 VAE_MODELS=()
 
 CLIP_MODELS=(
-    "https://huggingface.co/stabilityai/stable-diffusion-3-medium/resolve/main/sd3_medium_incl_clips_t5xxlfp16.safetensors"
 )
 
 LORA_MODELS=()
