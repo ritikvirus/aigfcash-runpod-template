@@ -36,6 +36,7 @@ NODES=(
     "https://github.com/if-ai/ComfyUI_IF_AI_LoadImages"
     "https://github.com/Suzie1/ComfyUI_Comfyroll_CustomNodes"
     "https://github.com/shiimizu/ComfyUI-TiledDiffusion"
+    "https://github.com/kijai/ComfyUI-WanVideoWrapper"
 )
 
 WORKFLOWS=(
@@ -124,6 +125,9 @@ function provisioning_start() {
     provisioning_get_models \
         "${WORKSPACE}/ComfyUI/models/clip_vision/" \
         "${CLIP_VISION[@]}"
+    provisioning_get_models \
+        "${WORKSPACE}/ComfyUI/models/text_encoders" \
+        "${TEXT_ENCODER_MODELS[@]}"
     provisioning_get_models \
         "${WORKSPACE}/storage/stable_diffusion/models/lora" \
         "${LORA_MODELS[@]}"

@@ -36,6 +36,11 @@ NODES=(
     "https://github.com/if-ai/ComfyUI_IF_AI_LoadImages"
     "https://github.com/Suzie1/ComfyUI_Comfyroll_CustomNodes"
     "https://github.com/shiimizu/ComfyUI-TiledDiffusion"
+    "https://github.com/BadCafeCode/masquerade-nodes-comfyui"
+    "https://github.com/city96/ComfyUI_ExtraModels"
+    "https://github.com/city96/ComfyUI-GGUF"
+    "https://github.com/Ryuukeisyou/comfyui_face_parsing"
+    "https://github.com/chflame163/ComfyUI_LayerStyle"
 )
 
 WORKFLOWS=(
@@ -48,10 +53,13 @@ CHECKPOINT_MODELS=(
     "https://huggingface.co/John6666/epicrealism-xl-v8kiss-sdxl/resolve/main/epicrealismXL_vx1Finalkiss.safetensors"
     "https://huggingface.co/TheImposterImposters/URPM-v2.3Final/resolve/main/uberRealisticPornMerge_v23Final.safetensors"
     "https://huggingface.co/AiWise/epiCRealism-XL-vXI-aBEAST/resolve/5c3950c035ce565d0358b76805de5ef2c74be919/epicrealismXL_vxiAbeast.safetensors"
+    "https://huggingface.co/stabilityai/stable-diffusion-3.5-large/resolve/main/sd3.5_large.safetensors"
 )
 UNET_MODELS=()
 VAE_MODELS=()
-CLIP_MODELS=()
+CLIP_MODELS=(
+    "https://huggingface.co/stabilityai/stable-diffusion-3-medium/resolve/main/sd3_medium_incl_clips_t5xxlfp16.safetensors"
+)
 LORA_MODELS=()
 CONTROLNET_MODELS=()
 ESRGAN_MODELS=()
