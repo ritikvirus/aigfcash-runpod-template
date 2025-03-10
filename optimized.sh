@@ -41,6 +41,9 @@ NODES=(
     "https://github.com/city96/ComfyUI-GGUF"
     "https://github.com/Ryuukeisyou/comfyui_face_parsing"
     "https://github.com/chflame163/ComfyUI_LayerStyle"
+    "https://github.com/chflame163/ComfyUI_LayerStyle_Advance"
+    "https://github.com/cubiq/ComfyUI_FaceAnalysis"
+    "https://github.com/chrisgoringe/cg-use-everywhere"
 )
 
 WORKFLOWS=(
@@ -57,9 +60,11 @@ CHECKPOINT_MODELS=(
 )
 UNET_MODELS=()
 VAE_MODELS=()
+
 CLIP_MODELS=(
     "https://huggingface.co/stabilityai/stable-diffusion-3-medium/resolve/main/sd3_medium_incl_clips_t5xxlfp16.safetensors"
 )
+
 LORA_MODELS=()
 CONTROLNET_MODELS=()
 ESRGAN_MODELS=()
