@@ -64,7 +64,10 @@ VAE_MODELS=()
 CLIP_MODELS=(
 )
 
-LORA_MODELS=()
+LORA_MODELS=(
+    "https://github.com/kingaigfcash/aigfcash-runpod-template/blob/main/loras/zoom_slider_v1.safetensors"
+)
+
 CONTROLNET_MODELS=()
 ESRGAN_MODELS=()
 INSIGHTFACE_MODELS=(
