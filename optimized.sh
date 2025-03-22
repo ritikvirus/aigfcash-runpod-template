@@ -46,6 +46,7 @@ NODES=(
     "https://github.com/chrisgoringe/cg-use-everywhere"
     "https://github.com/jakechai/ComfyUI-JakeUpgrade"
     "https://github.com/cubiq/ComfyUI_IPAdapter_plus"
+    "https://github.com/0xbitches/ComfyUI-LCM"
 )
 
 WORKFLOWS=(
