@@ -42,7 +42,8 @@
         "cnr_id": "comfy-core",
         "ver": "v0.2.2",
         "Node name for S&R": "VAEDecode"
-      }
+      },
+      "widgets_values": []
     },
     {
       "id": 19,
@@ -203,263 +204,6 @@
       ]
     },
     {
-      "id": 4,
-      "type": "CheckpointLoaderSimple",
-      "pos": {
-        "0": 142,
-        "1": 19
-      },
-      "size": {
-        "0": 315,
-        "1": 98
-      },
-      "flags": {},
-      "order": 3,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "links": [
-            28
-          ],
-          "slot_index": 0,
-          "shape": 3
-        },
-        {
-          "name": "CLIP",
-          "type": "CLIP",
-          "links": [
-            29
-          ],
-          "slot_index": 1,
-          "shape": 3
-        },
-        {
-          "name": "VAE",
-          "type": "VAE",
-          "links": [
-            8
-          ],
-          "shape": 3
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "v0.2.2",
-        "Node name for S&R": "CheckpointLoaderSimple"
-      },
-      "widgets_values": [
-        "epicrealismXL_vxviLastfameDMD2.safetensors"
-      ]
-    },
-    {
-      "id": 27,
-      "type": "CheckpointLoaderSimple",
-      "pos": {
-        "0": 516,
-        "1": 668
-      },
-      "size": {
-        "0": 315,
-        "1": 98
-      },
-      "flags": {},
-      "order": 4,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "links": [
-            34
-          ],
-          "slot_index": 0,
-          "shape": 3
-        },
-        {
-          "name": "CLIP",
-          "type": "CLIP",
-          "links": [
-            35
-          ],
-          "slot_index": 1,
-          "shape": 3
-        },
-        {
-          "name": "VAE",
-          "type": "VAE",
-          "links": [
-            12
-          ],
-          "shape": 3
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "v0.2.2",
-        "Node name for S&R": "CheckpointLoaderSimple"
-      },
-      "widgets_values": [
-        "epicrealismXL_vxviLastfameDMD2.safetensors"
-      ]
-    },
-    {
-      "id": 32,
-      "type": "Power Lora Loader (rgthree)",
-      "pos": {
-        "0": 971,
-        "1": 590
-      },
-      "size": {
-        "0": 340.20001220703125,
-        "1": 166
-      },
-      "flags": {},
-      "order": 7,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 34,
-          "dir": 3
-        },
-        {
-          "name": "clip",
-          "type": "CLIP",
-          "link": 35,
-          "dir": 3
-        }
-      ],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "links": [
-            37
-          ],
-          "slot_index": 0,
-          "shape": 3,
-          "dir": 4
-        },
-        {
-          "name": "CLIP",
-          "type": "CLIP",
-          "links": [
-            38
-          ],
-          "slot_index": 1,
-          "shape": 3,
-          "dir": 4
-        }
-      ],
-      "properties": {
-        "cnr_id": "rgthree-comfy",
-        "ver": "32142fe476878a354dda6e2d4b5ea98960de3ced",
-        "Show Strengths": "Single Strength"
-      },
-      "widgets_values": [
-        null,
-        {
-          "type": "PowerLoraLoaderHeaderWidget"
-        },
-        {
-          "on": true,
-          "lora": "LAYLASINCLAIR_LORA.safetensors",
-          "strength": 0.93,
-          "strengthTwo": null
-        },
-        {
-          "on": false,
-          "lora": "add-detail-xl.safetensors",
-          "strength": 2,
-          "strengthTwo": null
-        },
-        null,
-        ""
-      ]
-    },
-    {
-      "id": 31,
-      "type": "Power Lora Loader (rgthree)",
-      "pos": {
-        "0": 82,
-        "1": 202
-      },
-      "size": {
-        "0": 340.20001220703125,
-        "1": 166
-      },
-      "flags": {},
-      "order": 6,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 28,
-          "dir": 3
-        },
-        {
-          "name": "clip",
-          "type": "CLIP",
-          "link": 29,
-          "dir": 3
-        }
-      ],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "links": [
-            33
-          ],
-          "slot_index": 0,
-          "shape": 3,
-          "dir": 4
-        },
-        {
-          "name": "CLIP",
-          "type": "CLIP",
-          "links": [
-            31,
-            32
-          ],
-          "slot_index": 1,
-          "shape": 3,
-          "dir": 4
-        }
-      ],
-      "properties": {
-        "cnr_id": "rgthree-comfy",
-        "ver": "32142fe476878a354dda6e2d4b5ea98960de3ced",
-        "Show Strengths": "Single Strength"
-      },
-      "widgets_values": [
-        null,
-        {
-          "type": "PowerLoraLoaderHeaderWidget"
-        },
-        {
-          "on": true,
-          "lora": "LAYLASINCLAIR_LORA.safetensors",
-          "strength": 0.93,
-          "strengthTwo": null
-        },
-        {
-          "on": false,
-          "lora": "add-detail-xl.safetensors",
-          "strength": 2,
-          "strengthTwo": null
-        },
-        null,
-        ""
-      ]
-    },
-    {
       "id": 24,
       "type": "SaveImage",
       "pos": {
@@ -603,22 +347,26 @@
         {
           "name": "sam_model_opt",
           "type": "SAM_MODEL",
-          "link": 16
+          "link": 16,
+          "shape": 7
         },
         {
           "name": "segm_detector_opt",
           "type": "SEGM_DETECTOR",
-          "link": 17
+          "link": 17,
+          "shape": 7
         },
         {
           "name": "detailer_hook",
           "type": "DETAILER_HOOK",
-          "link": null
+          "link": null,
+          "shape": 7
         },
         {
           "name": "scheduler_func_opt",
           "type": "SCHEDULER_FUNC",
-          "link": null
+          "link": null,
+          "shape": 7
         }
       ],
       "outputs": [
@@ -710,7 +458,7 @@
         "1": 106
       },
       "flags": {},
-      "order": 5,
+      "order": 3,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -776,6 +524,263 @@
       ],
       "color": "#232",
       "bgcolor": "#353"
+    },
+    {
+      "id": 4,
+      "type": "CheckpointLoaderSimple",
+      "pos": {
+        "0": 142,
+        "1": 19
+      },
+      "size": {
+        "0": 315,
+        "1": 98
+      },
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            28
+          ],
+          "slot_index": 0,
+          "shape": 3
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            29
+          ],
+          "slot_index": 1,
+          "shape": 3
+        },
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            8
+          ],
+          "shape": 3
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.2",
+        "Node name for S&R": "CheckpointLoaderSimple"
+      },
+      "widgets_values": [
+        "AIIM_Realism_FAST.safetensors"
+      ]
+    },
+    {
+      "id": 32,
+      "type": "Power Lora Loader (rgthree)",
+      "pos": {
+        "0": 971,
+        "1": 590
+      },
+      "size": {
+        "0": 340.20001220703125,
+        "1": 166
+      },
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 34,
+          "dir": 3
+        },
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 35,
+          "dir": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            37
+          ],
+          "slot_index": 0,
+          "shape": 3,
+          "dir": 4
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            38
+          ],
+          "slot_index": 1,
+          "shape": 3,
+          "dir": 4
+        }
+      ],
+      "properties": {
+        "cnr_id": "rgthree-comfy",
+        "ver": "32142fe476878a354dda6e2d4b5ea98960de3ced",
+        "Show Strengths": "Single Strength"
+      },
+      "widgets_values": [
+        {},
+        {
+          "type": "PowerLoraLoaderHeaderWidget"
+        },
+        {
+          "on": false,
+          "lora": "add_detail.safetensors",
+          "strength": 0.93,
+          "strengthTwo": null
+        },
+        {
+          "on": false,
+          "lora": "depth_of_field_slider_v1.safetensors",
+          "strength": 2,
+          "strengthTwo": null
+        },
+        {},
+        ""
+      ]
+    },
+    {
+      "id": 31,
+      "type": "Power Lora Loader (rgthree)",
+      "pos": {
+        "0": 82,
+        "1": 202
+      },
+      "size": {
+        "0": 340.20001220703125,
+        "1": 166
+      },
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 28,
+          "dir": 3
+        },
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 29,
+          "dir": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            33
+          ],
+          "slot_index": 0,
+          "shape": 3,
+          "dir": 4
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            31,
+            32
+          ],
+          "slot_index": 1,
+          "shape": 3,
+          "dir": 4
+        }
+      ],
+      "properties": {
+        "cnr_id": "rgthree-comfy",
+        "ver": "32142fe476878a354dda6e2d4b5ea98960de3ced",
+        "Show Strengths": "Single Strength"
+      },
+      "widgets_values": [
+        {},
+        {
+          "type": "PowerLoraLoaderHeaderWidget"
+        },
+        {
+          "on": false,
+          "lora": "depth_of_field_slider_v1.safetensors",
+          "strength": 0.93,
+          "strengthTwo": null
+        },
+        {
+          "on": false,
+          "lora": "add_detail.safetensors",
+          "strength": 2,
+          "strengthTwo": null
+        },
+        {},
+        ""
+      ]
+    },
+    {
+      "id": 27,
+      "type": "CheckpointLoaderSimple",
+      "pos": {
+        "0": 516,
+        "1": 668
+      },
+      "size": {
+        "0": 315,
+        "1": 98
+      },
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            34
+          ],
+          "slot_index": 0,
+          "shape": 3
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            35
+          ],
+          "slot_index": 1,
+          "shape": 3
+        },
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            12
+          ],
+          "shape": 3
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.2",
+        "Node name for S&R": "CheckpointLoaderSimple"
+      },
+      "widgets_values": [
+        "AIIM_Realism_FAST.safetensors"
+      ]
     }
   ],
   "links": [
@@ -960,10 +965,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.5644739300537773,
+      "scale": 0.6830134553650705,
       "offset": [
-        109.94618151557242,
-        90.58845885297741
+        -559.5306227432235,
+        -97.94975117568947
       ]
     },
     "ue_links": []

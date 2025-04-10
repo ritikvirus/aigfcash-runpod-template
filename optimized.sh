@@ -47,6 +47,16 @@ NODES=(
     "https://github.com/jakechai/ComfyUI-JakeUpgrade"
     "https://github.com/cubiq/ComfyUI_IPAdapter_plus"
     "https://github.com/0xbitches/ComfyUI-LCM"
+    "https://github.com/flowtyone/ComfyUI-Flowty-LDSR"	
+    "https://github.com/Fannovel16/comfyui_controlnet_aux"
+    "https://github.com/un-seen/comfyui-tensorops"
+    "https://github.com/glifxyz/ComfyUI-GlifNodes"
+    "https://github.com/EllangoK/ComfyUI-post-processing-nodes"
+    "https://github.com/sipherxyz/comfyui-art-venture"
+    "https://github.com/storyicon/comfyui_segment_anything"
+    "https://github.com/kijai/ComfyUI-Florence2"
+    "https://github.com/pythongosssss/ComfyUI-Custom-Scripts"
+    "https://github.com/hay86/ComfyUI_LatentSync"
 )
 
 WORKFLOWS=(
@@ -56,8 +66,8 @@ WORKFLOWS=(
 # Initialize empty arrays for models
 CHECKPOINT_MODELS=(
     "https://huggingface.co/kingcashflow/modelcheckpoints/resolve/main/AIIM_Realism.safetensors"
-"https://huggingface.co/kingcashflow/modelcheckpoints/resolve/main/AIIM_Realism_FAST.safetensors"
-    "https://huggingface.co/TheImposterImposters/URPM-v2.3Final/resolve/main/uberRealisticPornMerge_v23Final.safetensors"
+    "https://huggingface.co/kingcashflow/modelcheckpoints/resolve/main/AIIM_Realism_FAST.safetensors"
+    "https://huggingface.co/kingcashflow/modelcheckpoints/resolve/main/uberRealisticPornMergePonyxl_ponyxlHybridV1.safetensors"
     "https://huggingface.co/AiWise/epiCRealism-XL-vXI-aBEAST/resolve/5c3950c035ce565d0358b76805de5ef2c74be919/epicrealismXL_vxiAbeast.safetensors"
 )
 UNET_MODELS=()

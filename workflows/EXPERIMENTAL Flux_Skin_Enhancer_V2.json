@@ -1,6 +1,6 @@
 {
   "last_node_id": 265,
-  "last_link_id": 448,
+  "last_link_id": 451,
   "nodes": [
     {
       "id": 8,
@@ -43,6 +43,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "VAEDecode"
       },
       "widgets_values": []
@@ -71,6 +73,8 @@
       ],
       "outputs": [],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "PreviewImage"
       },
       "widgets_values": []
@@ -102,6 +106,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfyui_face_parsing",
+        "ver": "9e3132f216abb0f385222f5086c3b247b29ed411",
         "Node name for S&R": "FaceParsingProcessorLoader(FaceParsing)"
       },
       "widgets_values": [],
@@ -132,6 +138,8 @@
       ],
       "outputs": [],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "PreviewImage"
       },
       "widgets_values": [],
@@ -179,6 +187,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "VAEEncode"
       },
       "widgets_values": []
@@ -207,6 +217,8 @@
       ],
       "outputs": [],
       "properties": {
+        "cnr_id": "comfyui_essentials",
+        "ver": "33ff89fd354d8ec3ab6affb605a79a931b445d99",
         "Node name for S&R": "MaskPreview+"
       },
       "widgets_values": [],
@@ -254,6 +266,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "SetLatentNoiseMask"
       },
       "widgets_values": []
@@ -295,6 +309,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "CLIPTextEncode"
       },
       "widgets_values": [
@@ -336,6 +352,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "CLIPTextEncode"
       },
       "widgets_values": [
@@ -371,6 +389,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfyui_face_parsing",
+        "ver": "9e3132f216abb0f385222f5086c3b247b29ed411",
         "Node name for S&R": "FaceParsingModelLoader(FaceParsing)"
       },
       "widgets_values": [
@@ -403,6 +423,8 @@
       ],
       "outputs": [],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "PreviewImage"
       },
       "widgets_values": []
@@ -466,6 +488,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfyui_face_parsing",
+        "ver": "9e3132f216abb0f385222f5086c3b247b29ed411",
         "Node name for S&R": "FaceParse(FaceParsing)"
       },
       "widgets_values": [],
@@ -520,6 +544,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "masquerade-nodes-comfyui",
+        "ver": "432cb4d146a391b387a0cd25ace824328b5b61cf",
         "Node name for S&R": "Cut By Mask"
       },
       "widgets_values": [
@@ -550,6 +576,8 @@
       ],
       "outputs": [],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "PreviewImage"
       },
       "widgets_values": []
@@ -577,6 +605,8 @@
       ],
       "outputs": [],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "PreviewImage"
       },
       "widgets_values": []
@@ -616,6 +646,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "MaskToImage"
       },
       "widgets_values": []
@@ -643,6 +675,8 @@
       ],
       "outputs": [],
       "properties": {
+        "cnr_id": "comfyui_essentials",
+        "ver": "33ff89fd354d8ec3ab6affb605a79a931b445d99",
         "Node name for S&R": "MaskPreview+"
       },
       "widgets_values": []
@@ -689,6 +723,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "VAEDecode"
       },
       "widgets_values": []
@@ -717,6 +753,8 @@
       ],
       "outputs": [],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "PreviewImage"
       },
       "widgets_values": []
@@ -744,6 +782,8 @@
       ],
       "outputs": [],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "PreviewImage"
       },
       "widgets_values": []
@@ -771,6 +811,8 @@
       ],
       "outputs": [],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "SaveImage"
       },
       "widgets_values": [
@@ -825,6 +867,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfyui_essentials",
+        "ver": "33ff89fd354d8ec3ab6affb605a79a931b445d99",
         "Node name for S&R": "ImageResize+"
       },
       "widgets_values": [
@@ -884,6 +928,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfyui_essentials",
+        "ver": "33ff89fd354d8ec3ab6affb605a79a931b445d99",
         "Node name for S&R": "ImageResize+"
       },
       "widgets_values": [
@@ -921,6 +967,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfyui_faceanalysis",
+        "ver": "4919e4e931db0edb219ba5086b3c10b8af750631",
         "Node name for S&R": "FaceAnalysisModels"
       },
       "widgets_values": [
@@ -977,6 +1025,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "ImageCompositeMasked"
       },
       "widgets_values": [
@@ -1050,6 +1100,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "ImageCompositeMasked"
       },
       "widgets_values": [
@@ -1121,6 +1173,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfyui_essentials",
+        "ver": "33ff89fd354d8ec3ab6affb605a79a931b445d99",
         "Node name for S&R": "ImageResize+"
       },
       "widgets_values": [
@@ -1245,6 +1299,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfyui_faceanalysis",
+        "ver": "4919e4e931db0edb219ba5086b3c10b8af750631",
         "Node name for S&R": "FaceBoundingBox"
       },
       "widgets_values": [
@@ -1319,6 +1375,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfyui_faceanalysis",
+        "ver": "4919e4e931db0edb219ba5086b3c10b8af750631",
         "Node name for S&R": "FaceBoundingBox"
       },
       "widgets_values": [
@@ -1343,15 +1401,18 @@
       "mode": 0,
       "inputs": [
         {
-          "name": "IMAGE",
+          "name": "anything",
           "type": "*",
           "link": 194,
           "color_on": "#64B5F6",
-          "shape": 7
+          "shape": 7,
+          "label": "IMAGE"
         }
       ],
       "outputs": [],
       "properties": {
+        "cnr_id": "cg-use-everywhere",
+        "ver": "38b927a69b6ef25500e7f1d1da0f7270ff22c0b5",
         "Node name for S&R": "Anything Everywhere",
         "group_restricted": 0,
         "color_restricted": 0
@@ -1384,6 +1445,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfyui_faceanalysis",
+        "ver": "4919e4e931db0edb219ba5086b3c10b8af750631",
         "Node name for S&R": "FaceAnalysisModels"
       },
       "widgets_values": [
@@ -1427,6 +1490,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfyui_face_parsing",
+        "ver": "9e3132f216abb0f385222f5086c3b247b29ed411",
         "Node name for S&R": "FaceParsingResultsParser(FaceParsing)"
       },
       "widgets_values": [
@@ -1537,6 +1602,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "KSampler"
       },
       "widgets_values": [
@@ -1599,6 +1666,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "KSampler"
       },
       "widgets_values": [
@@ -1648,6 +1717,8 @@
       ],
       "title": "No Negative Prompt",
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "CLIPTextEncode"
       },
       "widgets_values": [
@@ -1691,6 +1762,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "ConditioningZeroOut"
       },
       "widgets_values": [],
@@ -1730,6 +1803,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "FluxGuidance"
       },
       "widgets_values": [
@@ -1782,6 +1857,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfyui-kjnodes",
+        "ver": "d57154c3a808b8a3f232ed293eaa2d000867c884",
         "Node name for S&R": "GrowMaskWithBlur"
       },
       "widgets_values": [
@@ -1853,6 +1930,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "CLIPTextEncode"
       },
       "widgets_values": [
@@ -1913,10 +1992,12 @@
         }
       ],
       "properties": {
+        "cnr_id": "rgthree-comfy",
+        "ver": "b84f39c7c224de765de0b54c55b967329011819d",
         "Show Strengths": "Single Strength"
       },
       "widgets_values": [
-        null,
+        {},
         {
           "type": "PowerLoraLoaderHeaderWidget"
         },
@@ -1932,7 +2013,7 @@
           "strength": 0.6,
           "strengthTwo": null
         },
-        null,
+        {},
         ""
       ],
       "color": "#233",
@@ -1987,6 +2068,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "CheckpointLoaderSimple"
       },
       "widgets_values": [
@@ -2027,6 +2110,8 @@
       ],
       "outputs": [],
       "properties": {
+        "cnr_id": "rgthree-comfy",
+        "ver": "b84f39c7c224de765de0b54c55b967329011819d",
         "comparer_mode": "Slide"
       },
       "widgets_values": [
@@ -2070,6 +2155,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "DualCLIPLoader"
       },
       "widgets_values": [
@@ -2106,6 +2193,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "EmptyLatentImage"
       },
       "widgets_values": [
@@ -2143,6 +2232,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "VAELoader"
       },
       "widgets_values": [
@@ -2203,10 +2294,12 @@
         }
       ],
       "properties": {
+        "cnr_id": "rgthree-comfy",
+        "ver": "b84f39c7c224de765de0b54c55b967329011819d",
         "Show Strengths": "Single Strength"
       },
       "widgets_values": [
-        null,
+        {},
         {
           "type": "PowerLoraLoaderHeaderWidget"
         },
@@ -2222,7 +2315,7 @@
           "strength": 0.8,
           "strengthTwo": null
         },
-        null,
+        {},
         ""
       ],
       "color": "#222",
@@ -2254,6 +2347,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
         "Node name for S&R": "UNETLoader"
       },
       "widgets_values": [
@@ -2309,6 +2404,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "ComfyUI_LayerStyle_Advance",
+        "ver": "fe35b54bd2781206994176f8913db4afabffcdb1",
         "Node name for S&R": "LayerMask: PersonMaskUltra V2"
       },
       "widgets_values": [
@@ -2956,6 +3053,30 @@
       28,
       0,
       "IMAGE"
+    ],
+    [
+      449,
+      8,
+      0,
+      250,
+      1,
+      "IMAGE"
+    ],
+    [
+      450,
+      8,
+      0,
+      96,
+      1,
+      "IMAGE"
+    ],
+    [
+      451,
+      8,
+      0,
+      28,
+      0,
+      "IMAGE"
     ]
   ],
   "groups": [
@@ -2969,8 +3090,7 @@
       ],
       "color": "#3f789e",
       "font_size": 24,
-      "flags": {},
-      "locked": false
+      "flags": {}
     },
     {
       "title": "Skin Texture Enhancer",
@@ -2982,8 +3102,7 @@
       ],
       "color": "#8A8",
       "font_size": 24,
-      "flags": {},
-      "locked": false
+      "flags": {}
     },
     {
       "title": "Face Features Recovery",
@@ -2995,8 +3114,7 @@
       ],
       "color": "#b58b2a",
       "font_size": 24,
-      "flags": {},
-      "locked": false
+      "flags": {}
     },
     {
       "title": "Flux",
@@ -3008,45 +3126,44 @@
       ],
       "color": "#3f789e",
       "font_size": 24,
-      "flags": {},
-      "locked": false
-    },
-    {
-      "title": "AICONOMIST_FLUX_SKIN_TEXTURE_ENHANCER_V2",
-      "bounding": [
-        1572,
-        -98,
-        1532,
-        80
-      ],
-      "color": "#3f789e",
-      "font_size": 60,
-      "flags": {},
-      "locked": false
-    },
-    {
-      "title": "PIXELAILABS.COM",
-      "bounding": [
-        2018,
-        -200,
-        541,
-        78
-      ],
-      "color": "#444",
-      "font_size": 60,
-      "flags": {},
-      "locked": false
+      "flags": {}
     }
   ],
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.2393920493691658,
-      "offset": {
-        "0": 1126.4869384765625,
-        "1": 308.3785400390625
+      "scale": 0.38554328942953164,
+      "offset": [
+        -730.0579775082462,
+        456.33579652662326
+      ]
+    },
+    "ue_links": [
+      {
+        "downstream": 250,
+        "downstream_slot": 1,
+        "upstream": "8",
+        "upstream_slot": 0,
+        "controller": 116,
+        "type": "IMAGE"
+      },
+      {
+        "downstream": 96,
+        "downstream_slot": 1,
+        "upstream": "8",
+        "upstream_slot": 0,
+        "controller": 116,
+        "type": "IMAGE"
+      },
+      {
+        "downstream": 28,
+        "downstream_slot": 0,
+        "upstream": "8",
+        "upstream_slot": 0,
+        "controller": 116,
+        "type": "IMAGE"
       }
-    }
+    ]
   },
   "version": 0.4
 }

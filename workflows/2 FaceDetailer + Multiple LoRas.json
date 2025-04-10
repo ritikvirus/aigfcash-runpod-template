@@ -42,7 +42,8 @@
         "cnr_id": "comfy-core",
         "ver": "v0.2.2",
         "Node name for S&R": "VAEDecode"
-      }
+      },
+      "widgets_values": []
     },
     {
       "id": 19,
@@ -239,58 +240,6 @@
       ]
     },
     {
-      "id": 4,
-      "type": "CheckpointLoaderSimple",
-      "pos": {
-        "0": 142,
-        "1": 19
-      },
-      "size": {
-        "0": 315,
-        "1": 98
-      },
-      "flags": {},
-      "order": 4,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "links": [
-            28
-          ],
-          "slot_index": 0,
-          "shape": 3
-        },
-        {
-          "name": "CLIP",
-          "type": "CLIP",
-          "links": [
-            29
-          ],
-          "slot_index": 1,
-          "shape": 3
-        },
-        {
-          "name": "VAE",
-          "type": "VAE",
-          "links": [
-            8
-          ],
-          "shape": 3
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "v0.2.2",
-        "Node name for S&R": "CheckpointLoaderSimple"
-      },
-      "widgets_values": [
-        "epicrealismXL_vxiiiAb3ast.safetensors"
-      ]
-    },
-    {
       "id": 27,
       "type": "CheckpointLoaderSimple",
       "pos": {
@@ -302,7 +251,7 @@
         "1": 98
       },
       "flags": {},
-      "order": 5,
+      "order": 4,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -373,159 +322,6 @@
       ]
     },
     {
-      "id": 32,
-      "type": "Power Lora Loader (rgthree)",
-      "pos": {
-        "0": 971,
-        "1": 590
-      },
-      "size": {
-        "0": 340.20001220703125,
-        "1": 166
-      },
-      "flags": {},
-      "order": 7,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 34,
-          "dir": 3
-        },
-        {
-          "name": "clip",
-          "type": "CLIP",
-          "link": 35,
-          "dir": 3
-        }
-      ],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "links": [
-            37
-          ],
-          "slot_index": 0,
-          "shape": 3,
-          "dir": 4
-        },
-        {
-          "name": "CLIP",
-          "type": "CLIP",
-          "links": [
-            38
-          ],
-          "slot_index": 1,
-          "shape": 3,
-          "dir": 4
-        }
-      ],
-      "properties": {
-        "cnr_id": "rgthree-comfy",
-        "ver": "32142fe476878a354dda6e2d4b5ea98960de3ced",
-        "Show Strengths": "Single Strength"
-      },
-      "widgets_values": [
-        null,
-        {
-          "type": "PowerLoraLoaderHeaderWidget"
-        },
-        {
-          "on": true,
-          "lora": "MARIACABRERA_LORA.safetensors",
-          "strength": 1,
-          "strengthTwo": null
-        },
-        {
-          "on": true,
-          "lora": "add-detail-xl.safetensors",
-          "strength": 2,
-          "strengthTwo": null
-        },
-        null,
-        ""
-      ]
-    },
-    {
-      "id": 31,
-      "type": "Power Lora Loader (rgthree)",
-      "pos": {
-        "0": 82,
-        "1": 202
-      },
-      "size": {
-        "0": 340.20001220703125,
-        "1": 166
-      },
-      "flags": {},
-      "order": 6,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 28,
-          "dir": 3
-        },
-        {
-          "name": "clip",
-          "type": "CLIP",
-          "link": 29,
-          "dir": 3
-        }
-      ],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "links": [
-            33
-          ],
-          "slot_index": 0,
-          "shape": 3,
-          "dir": 4
-        },
-        {
-          "name": "CLIP",
-          "type": "CLIP",
-          "links": [
-            31,
-            32
-          ],
-          "slot_index": 1,
-          "shape": 3,
-          "dir": 4
-        }
-      ],
-      "properties": {
-        "cnr_id": "rgthree-comfy",
-        "ver": "32142fe476878a354dda6e2d4b5ea98960de3ced",
-        "Show Strengths": "Single Strength"
-      },
-      "widgets_values": [
-        null,
-        {
-          "type": "PowerLoraLoaderHeaderWidget"
-        },
-        {
-          "on": true,
-          "lora": "MARIACABRERA_LORA.safetensors",
-          "strength": 1,
-          "strengthTwo": null
-        },
-        {
-          "on": true,
-          "lora": "add-detail-xl.safetensors",
-          "strength": 2,
-          "strengthTwo": null
-        },
-        null,
-        ""
-      ]
-    },
-    {
       "id": 3,
       "type": "KSampler",
       "pos": {
@@ -587,6 +383,184 @@
       ]
     },
     {
+      "id": 6,
+      "type": "CLIPTextEncode",
+      "pos": {
+        "0": 510,
+        "1": 84
+      },
+      "size": {
+        "0": 400,
+        "1": 200
+      },
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 31
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            2,
+            13
+          ],
+          "shape": 3
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.2",
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        "photo of MARCIACABRERA and MARCIACABRERA, 2girls, both 18-years old Colombian twins from Bogotá, Brown hair, (bountiful 38DDD cleavage:1.2), Large butt, extremely narrow waist, wide hips, long legs, navel piercing,\n\nwearing a lingerie set,\n\nplaying with a huge teddy bear inside their cozy bedroom, \n\nshallow depth of field, background blurred, sunny day"
+      ],
+      "color": "#232",
+      "bgcolor": "#353"
+    },
+    {
+      "id": 31,
+      "type": "Power Lora Loader (rgthree)",
+      "pos": {
+        "0": 82,
+        "1": 202
+      },
+      "size": {
+        "0": 340.20001220703125,
+        "1": 190
+      },
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 28,
+          "dir": 3
+        },
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 29,
+          "dir": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            33
+          ],
+          "slot_index": 0,
+          "shape": 3,
+          "dir": 4
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            31,
+            32
+          ],
+          "slot_index": 1,
+          "shape": 3,
+          "dir": 4
+        }
+      ],
+      "properties": {
+        "cnr_id": "rgthree-comfy",
+        "ver": "32142fe476878a354dda6e2d4b5ea98960de3ced",
+        "Show Strengths": "Single Strength"
+      },
+      "widgets_values": [
+        {},
+        {
+          "type": "PowerLoraLoaderHeaderWidget"
+        },
+        {
+          "on": false,
+          "lora": "depth_of_field_slider_v1.safetensors",
+          "strength": 1,
+          "strengthTwo": null
+        },
+        {
+          "on": false,
+          "lora": "add-detail-xl.safetensors",
+          "strength": 2,
+          "strengthTwo": null
+        },
+        {
+          "on": false,
+          "lora": "zoom_slider_v1.safetensors",
+          "strength": 1,
+          "strengthTwo": null
+        },
+        {},
+        ""
+      ]
+    },
+    {
+      "id": 4,
+      "type": "CheckpointLoaderSimple",
+      "pos": {
+        "0": 142,
+        "1": 19
+      },
+      "size": {
+        "0": 315,
+        "1": 98
+      },
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            28
+          ],
+          "slot_index": 0,
+          "shape": 3
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            29
+          ],
+          "slot_index": 1,
+          "shape": 3
+        },
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            8
+          ],
+          "shape": 3
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.2",
+        "Node name for S&R": "CheckpointLoaderSimple"
+      },
+      "widgets_values": [
+        "epicrealismXL_vxiAbeast.safetensors"
+      ]
+    },
+    {
       "id": 17,
       "type": "FaceDetailer",
       "pos": {
@@ -639,22 +613,26 @@
         {
           "name": "sam_model_opt",
           "type": "SAM_MODEL",
-          "link": 16
+          "link": 16,
+          "shape": 7
         },
         {
           "name": "segm_detector_opt",
           "type": "SEGM_DETECTOR",
-          "link": 17
+          "link": 17,
+          "shape": 7
         },
         {
           "name": "detailer_hook",
           "type": "DETAILER_HOOK",
-          "link": null
+          "link": null,
+          "shape": 7
         },
         {
           "name": "scheduler_func_opt",
           "type": "SCHEDULER_FUNC",
-          "link": null
+          "link": null,
+          "shape": 7
         }
       ],
       "outputs": [
@@ -712,7 +690,7 @@
         3,
         "dpmpp_3m_sde_gpu",
         "karras",
-        0.7000000000000001,
+        0.4,
         15,
         true,
         true,
@@ -735,47 +713,80 @@
       ]
     },
     {
-      "id": 6,
-      "type": "CLIPTextEncode",
+      "id": 32,
+      "type": "Power Lora Loader (rgthree)",
       "pos": {
-        "0": 510,
-        "1": 84
+        "0": 971,
+        "1": 590
       },
       "size": {
-        "0": 400,
-        "1": 200
+        "0": 340.20001220703125,
+        "1": 166
       },
       "flags": {},
-      "order": 8,
+      "order": 6,
       "mode": 0,
       "inputs": [
         {
+          "name": "model",
+          "type": "MODEL",
+          "link": 34,
+          "dir": 3
+        },
+        {
           "name": "clip",
           "type": "CLIP",
-          "link": 31
+          "link": 35,
+          "dir": 3
         }
       ],
       "outputs": [
         {
-          "name": "CONDITIONING",
-          "type": "CONDITIONING",
+          "name": "MODEL",
+          "type": "MODEL",
           "links": [
-            2,
-            13
+            37
           ],
-          "shape": 3
+          "slot_index": 0,
+          "shape": 3,
+          "dir": 4
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            38
+          ],
+          "slot_index": 1,
+          "shape": 3,
+          "dir": 4
         }
       ],
       "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "v0.2.2",
-        "Node name for S&R": "CLIPTextEncode"
+        "cnr_id": "rgthree-comfy",
+        "ver": "32142fe476878a354dda6e2d4b5ea98960de3ced",
+        "Show Strengths": "Single Strength"
       },
       "widgets_values": [
-        "photo of MARCIACABRERA and MARCIACABRERA, 2girls, both 18-years old Colombian twins from Bogotá, Brown hair, (bountiful 38DDD cleavage:1.2), Large butt, extremely narrow waist, wide hips, long legs, navel piercing,\n\nwearing a lingerie set,\n\nplaying with a huge teddy bear inside their cozy bedroom, \n\nshallow depth of field, background blurred, sunny day"
-      ],
-      "color": "#232",
-      "bgcolor": "#353"
+        {},
+        {
+          "type": "PowerLoraLoaderHeaderWidget"
+        },
+        {
+          "on": false,
+          "lora": "None",
+          "strength": 1,
+          "strengthTwo": null
+        },
+        {
+          "on": false,
+          "lora": "None",
+          "strength": 2,
+          "strengthTwo": null
+        },
+        {},
+        ""
+      ]
     }
   ],
   "links": [
@@ -960,10 +971,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 1.1,
+      "scale": 0.8264462809917358,
       "offset": [
-        207.59766008692455,
-        -1.2257963024128475
+        530.9532932859214,
+        -94.69530656855149
       ]
     }
   },
