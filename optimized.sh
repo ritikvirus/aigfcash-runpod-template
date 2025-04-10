@@ -68,6 +68,7 @@ CLIP_MODELS=(
 LORA_MODELS=(
 	"https://huggingface.co/kingcashflow/LoRas/resolve/main/depth_of_field_slider_v1.safetensors"
 	"https://huggingface.co/kingcashflow/LoRas/resolve/main/zoom_slider_v1.safetensors"
+	"https://huggingface.co/kingcashflow/LoRas/resolve/main/add_detail.safetensors"
 )
 
 CONTROLNET_MODELS=()
