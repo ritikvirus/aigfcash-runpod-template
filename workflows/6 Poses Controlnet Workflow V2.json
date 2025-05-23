@@ -53,54 +53,6 @@
       "bgcolor": "#335"
     },
     {
-      "id": 50,
-      "type": "VAEDecode",
-      "pos": [
-        1530.2578125,
-        356.2650451660156
-      ],
-      "size": [
-        210,
-        46
-      ],
-      "flags": {
-        "collapsed": false
-      },
-      "order": 19,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "samples",
-          "type": "LATENT",
-          "link": 79
-        },
-        {
-          "name": "vae",
-          "type": "VAE",
-          "link": 85
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "slot_index": 0,
-          "links": [
-            78
-          ]
-        }
-      ],
-      "title": "unlatent",
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.27",
-        "Node name for S&R": "VAEDecode"
-      },
-      "widgets_values": [],
-      "color": "#323",
-      "bgcolor": "#535"
-    },
-    {
       "id": 88,
       "type": "SaveImage",
       "pos": [
@@ -185,39 +137,6 @@
       "bgcolor": "#535"
     },
     {
-      "id": 27,
-      "type": "PreviewImage",
-      "pos": [
-        1872.389404296875,
-        447.739501953125
-      ],
-      "size": [
-        258.5572509765625,
-        288.4881591796875
-      ],
-      "flags": {
-        "collapsed": false
-      },
-      "order": 22,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 82
-        }
-      ],
-      "outputs": [],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.27",
-        "Node name for S&R": "PreviewImage"
-      },
-      "widgets_values": [],
-      "color": "#323",
-      "bgcolor": "#535"
-    },
-    {
       "id": 48,
       "type": "Image Film Grain",
       "pos": [
@@ -232,7 +151,7 @@
         "collapsed": false
       },
       "order": 21,
-      "mode": 0,
+      "mode": 4,
       "inputs": [
         {
           "name": "image",
@@ -366,7 +285,7 @@
         82
       ],
       "flags": {},
-      "order": 7,
+      "order": 8,
       "mode": 0,
       "inputs": [
         {
@@ -473,48 +392,6 @@
       "bgcolor": "#335"
     },
     {
-      "id": 99,
-      "type": "LoadImage",
-      "pos": [
-        -187.9854278564453,
-        1556.8106689453125
-      ],
-      "size": [
-        386.0576477050781,
-        446.9858093261719
-      ],
-      "flags": {},
-      "order": 1,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "slot_index": 0,
-          "links": [
-            156
-          ]
-        },
-        {
-          "name": "MASK",
-          "type": "MASK",
-          "links": null
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.27",
-        "Node name for S&R": "LoadImage"
-      },
-      "widgets_values": [
-        "WhatsApp Image 2025-05-22 at 14.07.11_4be18b03.jpg",
-        "image"
-      ],
-      "color": "#223",
-      "bgcolor": "#335"
-    },
-    {
       "id": 41,
       "type": "VAELoader",
       "pos": [
@@ -526,7 +403,7 @@
         58
       ],
       "flags": {},
-      "order": 2,
+      "order": 1,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -563,7 +440,7 @@
         58
       ],
       "flags": {},
-      "order": 3,
+      "order": 2,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -599,7 +476,7 @@
         179.08973693847656
       ],
       "flags": {},
-      "order": 12,
+      "order": 11,
       "mode": 0,
       "inputs": [
         {
@@ -631,98 +508,6 @@
       "bgcolor": "#533"
     },
     {
-      "id": 34,
-      "type": "Power Lora Loader (rgthree)",
-      "pos": [
-        422.1040954589844,
-        293.88128662109375
-      ],
-      "size": [
-        301.7860412597656,
-        214
-      ],
-      "flags": {},
-      "order": 8,
-      "mode": 0,
-      "inputs": [
-        {
-          "dir": 3,
-          "name": "model",
-          "type": "MODEL",
-          "link": 43
-        },
-        {
-          "dir": 3,
-          "name": "clip",
-          "type": "CLIP",
-          "link": 72
-        }
-      ],
-      "outputs": [
-        {
-          "dir": 4,
-          "name": "MODEL",
-          "shape": 3,
-          "type": "MODEL",
-          "slot_index": 0,
-          "links": [
-            47,
-            84
-          ]
-        },
-        {
-          "dir": 4,
-          "name": "CLIP",
-          "shape": 3,
-          "type": "CLIP",
-          "slot_index": 1,
-          "links": [
-            62,
-            63
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "rgthree-comfy",
-        "ver": "b84f39c7c224de765de0b54c55b967329011819d",
-        "Show Strengths": "Single Strength"
-      },
-      "widgets_values": [
-        {},
-        {
-          "type": "PowerLoraLoaderHeaderWidget"
-        },
-        {
-          "on": true,
-          "lora": "JINAKIM_LORA.safetensors",
-          "strength": 0.93,
-          "strengthTwo": null
-        },
-        {
-          "on": true,
-          "lora": "depth_of_field_slider_v1.safetensors",
-          "strength": 7,
-          "strengthTwo": null
-        },
-        {
-          "on": true,
-          "lora": "zoom_slider_v1.safetensors",
-          "strength": -7,
-          "strengthTwo": null
-        },
-        {
-          "on": true,
-          "lora": "add_detail.safetensors",
-          "strength": 2,
-          "strengthTwo": null
-        },
-        {},
-        ""
-      ],
-      "color": "#323",
-      "bgcolor": "#535"
-    },
-    {
       "id": 25,
       "type": "CheckpointLoaderSimple",
       "pos": [
@@ -734,7 +519,7 @@
         98
       ],
       "flags": {},
-      "order": 4,
+      "order": 3,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -826,7 +611,7 @@
         "Node name for S&R": "KSampler"
       },
       "widgets_values": [
-        1053677095197265,
+        267636359378377,
         "randomize",
         12,
         1,
@@ -849,90 +634,13 @@
         454.44891357421875
       ],
       "flags": {},
-      "order": 9,
+      "order": 12,
       "mode": 0,
       "inputs": [
         {
           "name": "images",
           "type": "IMAGE",
           "link": 157
-        }
-      ],
-      "outputs": [],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.27",
-        "Node name for S&R": "PreviewImage"
-      },
-      "widgets_values": [],
-      "color": "#223",
-      "bgcolor": "#335"
-    },
-    {
-      "id": 49,
-      "type": "ImageScaleBy",
-      "pos": [
-        1530.8226318359375,
-        466.18804931640625
-      ],
-      "size": [
-        315,
-        82
-      ],
-      "flags": {
-        "collapsed": false
-      },
-      "order": 20,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 78
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "slot_index": 0,
-          "links": [
-            77
-          ]
-        }
-      ],
-      "title": "downscale (optional)",
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.27",
-        "Node name for S&R": "ImageScaleBy"
-      },
-      "widgets_values": [
-        "lanczos",
-        0.77
-      ],
-      "color": "#223",
-      "bgcolor": "#335"
-    },
-    {
-      "id": 71,
-      "type": "PreviewImage",
-      "pos": [
-        1871.8797607421875,
-        128.4646759033203
-      ],
-      "size": [
-        258.75616455078125,
-        258
-      ],
-      "flags": {},
-      "order": 17,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 119
         }
       ],
       "outputs": [],
@@ -1012,54 +720,6 @@
       "bgcolor": "#535"
     },
     {
-      "id": 86,
-      "type": "SDXLEmptyLatentSizePicker+",
-      "pos": [
-        751.9370727539062,
-        602.8579711914062
-      ],
-      "size": [
-        403.1999816894531,
-        170
-      ],
-      "flags": {},
-      "order": 5,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "LATENT",
-          "type": "LATENT",
-          "links": [
-            144
-          ]
-        },
-        {
-          "name": "width",
-          "type": "INT",
-          "links": null
-        },
-        {
-          "name": "height",
-          "type": "INT",
-          "links": null
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfyui_essentials",
-        "ver": "1.1.0",
-        "Node name for S&R": "SDXLEmptyLatentSizePicker+"
-      },
-      "widgets_values": [
-        "832x1216 (0.68)",
-        1,
-        0,
-        0
-      ],
-      "color": "#323",
-      "bgcolor": "#535"
-    },
-    {
       "id": 52,
       "type": "PerturbedAttention",
       "pos": [
@@ -1073,7 +733,7 @@
       "flags": {
         "collapsed": false
       },
-      "order": 10,
+      "order": 9,
       "mode": 4,
       "inputs": [
         {
@@ -1172,7 +832,7 @@
         250
       ],
       "flags": {},
-      "order": 6,
+      "order": 4,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -1192,6 +852,256 @@
       }
     },
     {
+      "id": 34,
+      "type": "Power Lora Loader (rgthree)",
+      "pos": [
+        422.1040954589844,
+        293.88128662109375
+      ],
+      "size": [
+        301.7860412597656,
+        214
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "dir": 3,
+          "name": "model",
+          "type": "MODEL",
+          "link": 43
+        },
+        {
+          "dir": 3,
+          "name": "clip",
+          "type": "CLIP",
+          "link": 72
+        }
+      ],
+      "outputs": [
+        {
+          "dir": 4,
+          "name": "MODEL",
+          "shape": 3,
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            47,
+            84
+          ]
+        },
+        {
+          "dir": 4,
+          "name": "CLIP",
+          "shape": 3,
+          "type": "CLIP",
+          "slot_index": 1,
+          "links": [
+            62,
+            63
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "rgthree-comfy",
+        "ver": "b84f39c7c224de765de0b54c55b967329011819d",
+        "Show Strengths": "Single Strength"
+      },
+      "widgets_values": [
+        {},
+        {
+          "type": "PowerLoraLoaderHeaderWidget"
+        },
+        {
+          "on": false,
+          "lora": "JINAKIM_LORA.safetensors",
+          "strength": 0.93,
+          "strengthTwo": null
+        },
+        {
+          "on": false,
+          "lora": "depth_of_field_slider_v1.safetensors",
+          "strength": 7,
+          "strengthTwo": null
+        },
+        {
+          "on": false,
+          "lora": "zoom_slider_v1.safetensors",
+          "strength": -7,
+          "strengthTwo": null
+        },
+        {
+          "on": false,
+          "lora": "add_detail.safetensors",
+          "strength": 2,
+          "strengthTwo": null
+        },
+        {},
+        ""
+      ],
+      "color": "#323",
+      "bgcolor": "#535"
+    },
+    {
+      "id": 50,
+      "type": "VAEDecode",
+      "pos": [
+        1530.2578125,
+        356.2650451660156
+      ],
+      "size": [
+        210,
+        46
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 19,
+      "mode": 4,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 79
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 85
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": [
+            78
+          ]
+        }
+      ],
+      "title": "unlatent",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.27",
+        "Node name for S&R": "VAEDecode"
+      },
+      "widgets_values": [],
+      "color": "#323",
+      "bgcolor": "#535"
+    },
+    {
+      "id": 27,
+      "type": "PreviewImage",
+      "pos": [
+        1872.389404296875,
+        447.739501953125
+      ],
+      "size": [
+        258.5572509765625,
+        288.4881591796875
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 22,
+      "mode": 4,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 82
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.27",
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": [],
+      "color": "#323",
+      "bgcolor": "#535"
+    },
+    {
+      "id": 49,
+      "type": "ImageScaleBy",
+      "pos": [
+        1530.8226318359375,
+        466.18804931640625
+      ],
+      "size": [
+        315,
+        82
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 20,
+      "mode": 4,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 78
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": [
+            77
+          ]
+        }
+      ],
+      "title": "downscale (optional)",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.27",
+        "Node name for S&R": "ImageScaleBy"
+      },
+      "widgets_values": [
+        "lanczos",
+        0.77
+      ],
+      "color": "#223",
+      "bgcolor": "#335"
+    },
+    {
+      "id": 71,
+      "type": "PreviewImage",
+      "pos": [
+        1871.8797607421875,
+        128.4646759033203
+      ],
+      "size": [
+        258.75616455078125,
+        258
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 119
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.27",
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": [],
+      "color": "#223",
+      "bgcolor": "#335"
+    },
+    {
       "id": 6,
       "type": "CLIPTextEncode",
       "pos": [
@@ -1203,7 +1113,7 @@
         168.5941925048828
       ],
       "flags": {},
-      "order": 11,
+      "order": 10,
       "mode": 0,
       "inputs": [
         {
@@ -1229,10 +1139,100 @@
         "Node name for S&R": "CLIPTextEncode"
       },
       "widgets_values": [
-        "photo of JINAKIM, large 38DDD cleavage, confident smirk, wearing a tailored navy blue pantsuit with a fitted blazer over a white silk camisole, wide-leg trousers, silver hoop earrings, and a sleek watch, sunny day at 3pm, large DOF, EOS 5D Mark IV, f/2.8 aperture, 1/500 shutter speed, ISO 100, camera angle straight-on, sharp focus on face"
+        "instagram photo, amateur, skin textures, photorealistic portrait of a 21-year-old Caucasian female with subtle Eastern European (Croatian) features, super attractive with an oval face shape, medium 32B sized breasts, sunkissed tan with natural tan lines, narrow waist and slim athletic body, long sun-kissed blonde hair in natural beach waves, almond-shaped bright blue eyes with natural eyelashes and subtle winged eyeliner, full lips with defined cupid’s bow and slight gloss, round eyebrows, cute nose with slim bridge, low cheekbones, soft rounded jawline and chin, softglam makeup with smoky neutral tones, warm bronzer, fresh luminous skin, warm and genuine smile, wearing a loose white crochet crop top over a pastel bikini top, high-waisted denim shorts, layered shell and leather necklaces, barefoot on a sandy beach with soft natural sunlight, relaxed and free-spirited expression, shallow depth of field with blurred ocean and palm trees in background, eye-level camera angle, balanced composition capturing laid-back California surfer girl and boho hippie style, photorealistic, high detail, natural lighting"
       ],
       "color": "#232",
       "bgcolor": "#353"
+    },
+    {
+      "id": 86,
+      "type": "SDXLEmptyLatentSizePicker+",
+      "pos": [
+        751.9370727539062,
+        602.8579711914062
+      ],
+      "size": [
+        403.1999816894531,
+        170
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            144
+          ]
+        },
+        {
+          "name": "width",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_essentials",
+        "ver": "1.1.0",
+        "Node name for S&R": "SDXLEmptyLatentSizePicker+"
+      },
+      "widgets_values": [
+        "832x1216 (0.68)",
+        8,
+        0,
+        0
+      ],
+      "color": "#323",
+      "bgcolor": "#535"
+    },
+    {
+      "id": 99,
+      "type": "LoadImage",
+      "pos": [
+        -187.9854278564453,
+        1556.8106689453125
+      ],
+      "size": [
+        386.0576477050781,
+        446.9858093261719
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": [
+            156
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.27",
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "happy-beautiful-black-woman-sitting-on-couch-with-pillow-posing-at-camera-2C23CJ5.jpg",
+        "image"
+      ],
+      "color": "#223",
+      "bgcolor": "#335"
     }
   ],
   "links": [
@@ -1618,17 +1618,17 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.4736244074478671,
+      "scale": 0.5730855330119202,
       "offset": [
-        -102.21564797563475,
-        118.93178979091294
+        31.17138022434067,
+        39.51405203806868
       ]
     },
+    "frontendVersion": "1.19.9",
     "VHS_latentpreview": false,
     "VHS_latentpreviewrate": 0,
     "VHS_MetadataImage": true,
-    "VHS_KeepIntermediate": true,
-    "frontendVersion": "1.19.9"
+    "VHS_KeepIntermediate": true
   },
   "version": 0.4
 }
