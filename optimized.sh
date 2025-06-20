@@ -86,7 +86,10 @@ LORA_MODELS=(
 
 )
 
-CONTROLNET_MODELS=()
+CONTROLNET_MODELS=(
+    "https://huggingface.co/xinsir/controlnet-openpose-sdxl-1.0/resolve/main/diffusion_pytorch_model.safetensors,SDXL/controlnet-openpose-sdxl-1.0.safetensors"
+    "https://huggingface.co/xinsir/controlnet-depth-sdxl-1.0/resolve/main/diffusion_pytorch_model.safetensors,SDXL/controlnet-depth-sdxl-1.0.safetensors"
+)
 ESRGAN_MODELS=()
 INSIGHTFACE_MODELS=(
     "https://huggingface.co/datasets/Gourieff/ReActor/resolve/main/models/inswapper_128.onnx"
