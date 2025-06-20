@@ -82,6 +82,8 @@ LORA_MODELS=(
 	"https://huggingface.co/kingcashflow/LoRas/resolve/main/depth_of_field_slider_v1.safetensors"
 	"https://huggingface.co/kingcashflow/LoRas/resolve/main/zoom_slider_v1.safetensors"
 	"https://huggingface.co/kingcashflow/LoRas/resolve/main/add_detail.safetensors"
+    "https://huggingface.co/kingcashflow/underboobXL/resolve/main/UnderboobXL.safetensors"
+
 )
 
 CONTROLNET_MODELS=()
@@ -96,6 +98,7 @@ ULTRALYTICS_BBOX_MODELS=(
     "https://huggingface.co/Bingsu/adetailer/resolve/main/hand_yolov8n.pt"
     "https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8n_v2.pt"
     "https://huggingface.co/Bingsu/adetailer/resolve/main/hand_yolov9c.pt"
+    "https://huggingface.co/kingcashflow/underboobXL/resolve/main/Eyeful_v2-Individual.pt"
 )
 
 ULTRALYTICS_SEGM_MODELS=(
