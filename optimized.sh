@@ -57,6 +57,8 @@ NODES=(
     "https://github.com/kijai/ComfyUI-Florence2"
     "https://github.com/pythongosssss/ComfyUI-Custom-Scripts"
     "https://github.com/hay86/ComfyUI_LatentSync"
+    "https://github.com/pamparamm/sd-perturbed-attention.git"
+    "https://github.com/WASasquatch/was-node-suite-comfyui"
 )
 
 WORKFLOWS=(
