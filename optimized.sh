@@ -91,6 +91,9 @@ INSIGHTFACE_MODELS=(
 # Ultralytics models (YOLOv8)
 ULTRALYTICS_BBOX_MODELS=(
     "https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8m.pt"
+    "https://huggingface.co/Bingsu/adetailer/resolve/main/hand_yolov8n.pt"
+    "https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8n_v2.pt"
+    "https://huggingface.co/Bingsu/adetailer/resolve/main/hand_yolov9c.pt"
 )
 
 ULTRALYTICS_SEGM_MODELS=(
