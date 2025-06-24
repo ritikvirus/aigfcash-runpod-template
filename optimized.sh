@@ -57,7 +57,7 @@ NODES=(
     "https://github.com/kijai/ComfyUI-Florence2"
     "https://github.com/pythongosssss/ComfyUI-Custom-Scripts"
     "https://github.com/hay86/ComfyUI_LatentSync"
-    "https://github.com/pamparamm/sd-perturbed-attention.git"
+    "https://github.com/pamparamm/sd-perturbed-attention"
     "https://github.com/WASasquatch/was-node-suite-comfyui"
 )
 
@@ -87,8 +87,8 @@ LORA_MODELS=(
 )
 
 CONTROLNET_MODELS=(
-    "https://huggingface.co/xinsir/controlnet-openpose-sdxl-1.0/resolve/main/diffusion_pytorch_model.safetensors,SDXL/controlnet-openpose-sdxl-1.0.safetensors"
-    "https://huggingface.co/xinsir/controlnet-depth-sdxl-1.0/resolve/main/diffusion_pytorch_model.safetensors,SDXL/controlnet-depth-sdxl-1.0.safetensors"
+    "https://huggingface.co/xinsir/controlnet-openpose-sdxl-1.0/resolve/main/diffusion_pytorch_model.safetensors"
+    "https://huggingface.co/xinsir/controlnet-depth-sdxl-1.0/resolve/main/diffusion_pytorch_model.safetensors"
 )
 ESRGAN_MODELS=()
 INSIGHTFACE_MODELS=(
