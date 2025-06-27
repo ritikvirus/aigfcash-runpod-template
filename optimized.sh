@@ -197,10 +197,14 @@ function provisioning_get_pip_packages() {
 }
 
 function provisioning_get_nodes() {
+    pip_install --upgrade pip setuptools wheel
+
     for repo in "${NODES[@]}"; do
         dir="${repo##*/}"
         path="${WORKSPACE}/ComfyUI/custom_nodes/${dir}"
         requirements="${path}/requirements.txt"
+        
+        # Update existing node
         if [[ -d $path ]]; then
             if [[ ${AUTO_UPDATE,,} != "false" ]]; then
                 printf "Updating node: %s...\n" "${repo}"
@@ -208,21 +212,27 @@ function provisioning_get_nodes() {
                 if [[ -e $requirements ]]; then
                    pip_install -r "$requirements"
                 fi
+                if [[ -e "${path}/pyproject.toml" ]] || [[ -e "${path}/setup.py" ]]; then
+                    printf "Installing package in: %s\n" "${path}"
+                    pip_install "${path}"
+                fi
             fi
+        # Download new node
         else
             printf "Downloading node: %s...\n" "${repo}"
             git clone "${repo}" "${path}" --recursive
             if [[ -e $requirements ]]; then
                 pip_install -r "$requirements"
             fi
+            if [[ -e "${path}/pyproject.toml" ]] || [[ -e "${path}/setup.py" ]]; then
+                printf "Installing package in: %s\n" "${path}"
+                pip_install "${path}"
+            fi
         fi
     done
 
     printf "Updating comfyui-frontend-package...\n"
     pip_install --upgrade comfyui-frontend-package
-
-    printf "Installing sd-perturbed-attention...\n"
-    pip_install "git+https://github.com/pamparamm/sd-perturbed-attention.git"
 }
 
 function provisioning_get_workflows() {
