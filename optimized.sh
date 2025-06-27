@@ -213,10 +213,16 @@ function provisioning_get_nodes() {
             printf "Downloading node: %s...\n" "${repo}"
             git clone "${repo}" "${path}" --recursive
             if [[ -e $requirements ]]; then
-                pip_install -r "${requirements}"
+                pip_install -r "$requirements"
             fi
         fi
     done
+
+    printf "Updating comfyui-frontend-package...\n"
+    pip_install --upgrade comfyui-frontend-package
+
+    printf "Installing sd-perturbed-attention...\n"
+    pip_install "sd-perturbed-attention"
 }
 
 function provisioning_get_workflows() {
