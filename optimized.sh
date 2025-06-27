@@ -197,7 +197,13 @@ function provisioning_get_pip_packages() {
 }
 
 function provisioning_get_nodes() {
+    printf "Installing build tools...\n"
+    sudo apt-get update && sudo apt-get install -y build-essential
+
     pip_install --upgrade pip setuptools wheel
+
+    printf "Installing torchsde, a dependency for sd-perturbed-attention...\n"
+    pip_install torchsde
 
     for repo in "${NODES[@]}"; do
         dir="${repo##*/}"
