@@ -222,7 +222,7 @@ function provisioning_get_nodes() {
     pip_install --upgrade comfyui-frontend-package
 
     printf "Installing sd-perturbed-attention...\n"
-    pip_install "sd-perturbed-attention"
+    pip_install "git+https://github.com/pamparamm/sd-perturbed-attention.git"
 }
 
 function provisioning_get_workflows() {
