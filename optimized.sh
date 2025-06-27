@@ -72,8 +72,12 @@ CHECKPOINT_MODELS=(
     "https://huggingface.co/kingcashflow/modelcheckpoints/resolve/main/uberRealisticPornMergePonyxl_ponyxlHybridV1.safetensors"
     "https://huggingface.co/AiWise/epiCRealism-XL-vXI-aBEAST/resolve/5c3950c035ce565d0358b76805de5ef2c74be919/epicrealismXL_vxiAbeast.safetensors"
 )
-UNET_MODELS=()
-VAE_MODELS=()
+UNET_MODELS=(
+    
+)
+VAE_MODELS=(
+    "https://huggingface.co/stabilityai/sdxl-vae/resolve/main/diffusion_pytorch_model.safetensors"
+)
 
 CLIP_MODELS=(
 )
