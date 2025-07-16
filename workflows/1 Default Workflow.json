@@ -42,8 +42,7 @@
         "cnr_id": "comfy-core",
         "ver": "v0.2.7",
         "Node name for S&R": "VAEDecode"
-      },
-      "widgets_values": []
+      }
     },
     {
       "id": 9,
@@ -73,42 +72,6 @@
       },
       "widgets_values": [
         "ComfyUI"
-      ]
-    },
-    {
-      "id": 5,
-      "type": "EmptyLatentImage",
-      "pos": {
-        "0": 473,
-        "1": 609
-      },
-      "size": {
-        "0": 315,
-        "1": 106
-      },
-      "flags": {},
-      "order": 0,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "LATENT",
-          "type": "LATENT",
-          "links": [
-            2
-          ],
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "v0.2.7",
-        "Node name for S&R": "EmptyLatentImage"
-      },
-      "widgets_values": [
-        1024,
-        1024,
-        12
       ]
     },
     {
@@ -209,7 +172,7 @@
         "1": 98
       },
       "flags": {},
-      "order": 1,
+      "order": 0,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -245,7 +208,7 @@
         "Node name for S&R": "CheckpointLoaderSimple"
       },
       "widgets_values": [
-        "epicrealismXL_vxiAbeast.safetensors"
+        "AIIM_Realism_FAST.safetensors"
       ]
     },
     {
@@ -302,10 +265,46 @@
       "widgets_values": [
         687496463858231,
         "randomize",
-        26,
-        3.5,
-        "dpmpp_3m_sde_gpu",
-        "karras",
+        8,
+        1,
+        "lcm",
+        "exponential",
+        1
+      ]
+    },
+    {
+      "id": 5,
+      "type": "EmptyLatentImage",
+      "pos": {
+        "0": 412,
+        "1": 645
+      },
+      "size": {
+        "0": 315,
+        "1": 106
+      },
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            2
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.7",
+        "Node name for S&R": "EmptyLatentImage"
+      },
+      "widgets_values": [
+        1024,
+        1024,
         1
       ]
     }

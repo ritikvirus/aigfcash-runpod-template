@@ -42,8 +42,7 @@
         "cnr_id": "comfy-core",
         "ver": "v0.2.2",
         "Node name for S&R": "VAEDecode"
-      },
-      "widgets_values": []
+      }
     },
     {
       "id": 19,
@@ -77,9 +76,10 @@
         }
       ],
       "properties": {
-        "cnr_id": "comfyui-impact-subpack",
+        "aux_id": "ltdrdata/ComfyUI-Impact-Subpack",
         "ver": "74db20c95eca152a6d686c914edc0ef4e4762cb8",
-        "Node name for S&R": "UltralyticsDetectorProvider"
+        "Node name for S&R": "UltralyticsDetectorProvider",
+        "cnr_id": "comfyui-impact-subpack"
       },
       "widgets_values": [
         "segm/yolov8m-seg.pt"
@@ -111,57 +111,15 @@
         }
       ],
       "properties": {
-        "cnr_id": "comfyui-impact-pack",
+        "aux_id": "ltdrdata/ComfyUI-Impact-Pack",
         "ver": "0e3e6a193a68748b5e68cfd19fb6c7d92b2fac57",
-        "Node name for S&R": "SAMLoader"
+        "Node name for S&R": "SAMLoader",
+        "cnr_id": "comfyui-impact-pack"
       },
       "widgets_values": [
         "sam_vit_b_01ec64.pth",
         "AUTO"
       ]
-    },
-    {
-      "id": 7,
-      "type": "CLIPTextEncode",
-      "pos": {
-        "0": 513,
-        "1": 402
-      },
-      "size": {
-        "0": 400,
-        "1": 200
-      },
-      "flags": {},
-      "order": 9,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "clip",
-          "type": "CLIP",
-          "link": 32
-        }
-      ],
-      "outputs": [
-        {
-          "name": "CONDITIONING",
-          "type": "CONDITIONING",
-          "links": [
-            3,
-            14
-          ],
-          "shape": 3
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "v0.2.2",
-        "Node name for S&R": "CLIPTextEncode"
-      },
-      "widgets_values": [
-        "text, watermark, nude, naked, nipples"
-      ],
-      "color": "#322",
-      "bgcolor": "#533"
     },
     {
       "id": 5,
@@ -231,12 +189,172 @@
         }
       ],
       "properties": {
-        "cnr_id": "comfyui-impact-subpack",
+        "aux_id": "ltdrdata/ComfyUI-Impact-Subpack",
         "ver": "74db20c95eca152a6d686c914edc0ef4e4762cb8",
-        "Node name for S&R": "UltralyticsDetectorProvider"
+        "Node name for S&R": "UltralyticsDetectorProvider",
+        "cnr_id": "comfyui-impact-subpack"
       },
       "widgets_values": [
         "bbox/face_yolov8m.pt"
+      ]
+    },
+    {
+      "id": 24,
+      "type": "SaveImage",
+      "pos": {
+        "0": 1944,
+        "1": 311
+      },
+      "size": {
+        "0": 1362.515869140625,
+        "1": 1112.16748046875
+      },
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 18
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.2"
+      },
+      "widgets_values": [
+        "ComfyUI"
+      ]
+    },
+    {
+      "id": 32,
+      "type": "Power Lora Loader (rgthree)",
+      "pos": {
+        "0": 971,
+        "1": 590
+      },
+      "size": {
+        "0": 340.20001220703125,
+        "1": 166
+      },
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 34,
+          "dir": 3
+        },
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 35,
+          "dir": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            37
+          ],
+          "slot_index": 0,
+          "shape": 3,
+          "dir": 4
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            38
+          ],
+          "slot_index": 1,
+          "shape": 3,
+          "dir": 4
+        }
+      ],
+      "properties": {
+        "aux_id": "rgthree/rgthree-comfy",
+        "ver": "32142fe476878a354dda6e2d4b5ea98960de3ced",
+        "Show Strengths": "Single Strength",
+        "cnr_id": "rgthree-comfy"
+      },
+      "widgets_values": [
+        {},
+        {
+          "type": "PowerLoraLoaderHeaderWidget"
+        },
+        {
+          "on": false,
+          "lora": "None",
+          "strength": 1,
+          "strengthTwo": null
+        },
+        {
+          "on": false,
+          "lora": "None",
+          "strength": 2,
+          "strengthTwo": null
+        },
+        {},
+        ""
+      ]
+    },
+    {
+      "id": 4,
+      "type": "CheckpointLoaderSimple",
+      "pos": {
+        "0": 142,
+        "1": 19
+      },
+      "size": {
+        "0": 315,
+        "1": 98
+      },
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            28
+          ],
+          "slot_index": 0,
+          "shape": 3
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            29
+          ],
+          "slot_index": 1,
+          "shape": 3
+        },
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            8
+          ],
+          "shape": 3
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.2",
+        "Node name for S&R": "CheckpointLoaderSimple"
+      },
+      "widgets_values": [
+        "AIIM_Realism_FAST.safetensors"
       ]
     },
     {
@@ -251,7 +369,7 @@
         "1": 98
       },
       "flags": {},
-      "order": 4,
+      "order": 5,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -288,37 +406,7 @@
         "Node name for S&R": "CheckpointLoaderSimple"
       },
       "widgets_values": [
-        "epicrealismXL_vxiiiAb3ast.safetensors"
-      ]
-    },
-    {
-      "id": 24,
-      "type": "SaveImage",
-      "pos": {
-        "0": 1944,
-        "1": 311
-      },
-      "size": {
-        "0": 1362.515869140625,
-        "1": 1112.16748046875
-      },
-      "flags": {},
-      "order": 13,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 18
-        }
-      ],
-      "outputs": [],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "v0.2.2"
-      },
-      "widgets_values": [
-        "ComfyUI"
+        "AIIM_Realism_FAST.safetensors"
       ]
     },
     {
@@ -375,189 +463,11 @@
       "widgets_values": [
         906332828755966,
         "fixed",
-        35,
-        3.5,
-        "dpmpp_3m_sde_gpu",
-        "karras",
-        0.97
-      ]
-    },
-    {
-      "id": 6,
-      "type": "CLIPTextEncode",
-      "pos": {
-        "0": 510,
-        "1": 84
-      },
-      "size": {
-        "0": 400,
-        "1": 200
-      },
-      "flags": {},
-      "order": 8,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "clip",
-          "type": "CLIP",
-          "link": 31
-        }
-      ],
-      "outputs": [
-        {
-          "name": "CONDITIONING",
-          "type": "CONDITIONING",
-          "links": [
-            2,
-            13
-          ],
-          "shape": 3
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "v0.2.2",
-        "Node name for S&R": "CLIPTextEncode"
-      },
-      "widgets_values": [
-        "photo of MARCIACABRERA and MARCIACABRERA, 2girls, both 18-years old Colombian twins from Bogotá, Brown hair, (bountiful 38DDD cleavage:1.2), Large butt, extremely narrow waist, wide hips, long legs, navel piercing,\n\nwearing a lingerie set,\n\nplaying with a huge teddy bear inside their cozy bedroom, \n\nshallow depth of field, background blurred, sunny day"
-      ],
-      "color": "#232",
-      "bgcolor": "#353"
-    },
-    {
-      "id": 31,
-      "type": "Power Lora Loader (rgthree)",
-      "pos": {
-        "0": 82,
-        "1": 202
-      },
-      "size": {
-        "0": 340.20001220703125,
-        "1": 190
-      },
-      "flags": {},
-      "order": 7,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 28,
-          "dir": 3
-        },
-        {
-          "name": "clip",
-          "type": "CLIP",
-          "link": 29,
-          "dir": 3
-        }
-      ],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "links": [
-            33
-          ],
-          "slot_index": 0,
-          "shape": 3,
-          "dir": 4
-        },
-        {
-          "name": "CLIP",
-          "type": "CLIP",
-          "links": [
-            31,
-            32
-          ],
-          "slot_index": 1,
-          "shape": 3,
-          "dir": 4
-        }
-      ],
-      "properties": {
-        "cnr_id": "rgthree-comfy",
-        "ver": "32142fe476878a354dda6e2d4b5ea98960de3ced",
-        "Show Strengths": "Single Strength"
-      },
-      "widgets_values": [
-        {},
-        {
-          "type": "PowerLoraLoaderHeaderWidget"
-        },
-        {
-          "on": false,
-          "lora": "depth_of_field_slider_v1.safetensors",
-          "strength": 1,
-          "strengthTwo": null
-        },
-        {
-          "on": false,
-          "lora": "add-detail-xl.safetensors",
-          "strength": 2,
-          "strengthTwo": null
-        },
-        {
-          "on": false,
-          "lora": "zoom_slider_v1.safetensors",
-          "strength": 1,
-          "strengthTwo": null
-        },
-        {},
-        ""
-      ]
-    },
-    {
-      "id": 4,
-      "type": "CheckpointLoaderSimple",
-      "pos": {
-        "0": 142,
-        "1": 19
-      },
-      "size": {
-        "0": 315,
-        "1": 98
-      },
-      "flags": {},
-      "order": 5,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "links": [
-            28
-          ],
-          "slot_index": 0,
-          "shape": 3
-        },
-        {
-          "name": "CLIP",
-          "type": "CLIP",
-          "links": [
-            29
-          ],
-          "slot_index": 1,
-          "shape": 3
-        },
-        {
-          "name": "VAE",
-          "type": "VAE",
-          "links": [
-            8
-          ],
-          "shape": 3
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "v0.2.2",
-        "Node name for S&R": "CheckpointLoaderSimple"
-      },
-      "widgets_values": [
-        "epicrealismXL_vxiAbeast.safetensors"
+        8,
+        1,
+        "lcm",
+        "exponential",
+        1
       ]
     },
     {
@@ -676,20 +586,21 @@
         }
       ],
       "properties": {
-        "cnr_id": "comfyui-impact-pack",
+        "aux_id": "ltdrdata/ComfyUI-Impact-Pack",
         "ver": "0e3e6a193a68748b5e68cfd19fb6c7d92b2fac57",
-        "Node name for S&R": "FaceDetailer"
+        "Node name for S&R": "FaceDetailer",
+        "cnr_id": "comfyui-impact-pack"
       },
       "widgets_values": [
-        1024,
+        512,
         true,
         1024,
         533779833840473,
         "fixed",
-        26,
-        3,
-        "dpmpp_3m_sde_gpu",
-        "karras",
+        8,
+        1,
+        "lcm",
+        "exponential",
         0.4,
         15,
         true,
@@ -713,15 +624,101 @@
       ]
     },
     {
-      "id": 32,
+      "id": 7,
+      "type": "CLIPTextEncode",
+      "pos": {
+        "0": 513,
+        "1": 402
+      },
+      "size": {
+        "0": 400,
+        "1": 200
+      },
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 32
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            3,
+            14
+          ],
+          "shape": 3
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.2",
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        "text, watermark, nude, naked, nsfw, topless"
+      ],
+      "color": "#322",
+      "bgcolor": "#533"
+    },
+    {
+      "id": 6,
+      "type": "CLIPTextEncode",
+      "pos": {
+        "0": 510,
+        "1": 84
+      },
+      "size": {
+        "0": 400,
+        "1": 200
+      },
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 31
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            2,
+            13
+          ],
+          "shape": 3
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "v0.2.2",
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        "photo of MARCIACABRERA and MARCIACABRERA, 2girls, both 18-years old Colombian twins from Bogotá, Brown hair, (bountiful 38DDD cleavage:1.2), Large butt, extremely narrow waist, wide hips, long legs, navel piercing,\n\nwearing a lingerie set,\n\nplaying with a huge teddy bear inside their cozy bedroom, \n\nshallow depth of field, background blurred, sunny day"
+      ],
+      "color": "#232",
+      "bgcolor": "#353"
+    },
+    {
+      "id": 31,
       "type": "Power Lora Loader (rgthree)",
       "pos": {
-        "0": 971,
-        "1": 590
+        "0": 102,
+        "1": 182
       },
       "size": {
         "0": 340.20001220703125,
-        "1": 166
+        "1": 190
       },
       "flags": {},
       "order": 6,
@@ -730,13 +727,13 @@
         {
           "name": "model",
           "type": "MODEL",
-          "link": 34,
+          "link": 28,
           "dir": 3
         },
         {
           "name": "clip",
           "type": "CLIP",
-          "link": 35,
+          "link": 29,
           "dir": 3
         }
       ],
@@ -745,7 +742,7 @@
           "name": "MODEL",
           "type": "MODEL",
           "links": [
-            37
+            33
           ],
           "slot_index": 0,
           "shape": 3,
@@ -755,7 +752,8 @@
           "name": "CLIP",
           "type": "CLIP",
           "links": [
-            38
+            31,
+            32
           ],
           "slot_index": 1,
           "shape": 3,
@@ -763,9 +761,10 @@
         }
       ],
       "properties": {
-        "cnr_id": "rgthree-comfy",
+        "aux_id": "rgthree/rgthree-comfy",
         "ver": "32142fe476878a354dda6e2d4b5ea98960de3ced",
-        "Show Strengths": "Single Strength"
+        "Show Strengths": "Single Strength",
+        "cnr_id": "rgthree-comfy"
       },
       "widgets_values": [
         {},
@@ -774,14 +773,20 @@
         },
         {
           "on": false,
-          "lora": "None",
+          "lora": "depth_of_field_slider_v1.safetensors",
           "strength": 1,
           "strengthTwo": null
         },
         {
           "on": false,
-          "lora": "None",
+          "lora": "add-detail-xl.safetensors",
           "strength": 2,
+          "strengthTwo": null
+        },
+        {
+          "on": false,
+          "lora": "zoom_slider_v1.safetensors",
+          "strength": 1,
           "strengthTwo": null
         },
         {},
@@ -971,10 +976,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.8264462809917358,
+      "scale": 0.5644739300537776,
       "offset": [
-        530.9532932859214,
-        -94.69530656855149
+        337.832131928636,
+        174.21007872602968
       ]
     }
   },
