@@ -7,13 +7,39 @@
 DEFAULT_WORKFLOW="https://raw.githubusercontent.com/kingaigfcash/aigfcash-runpod-template/refs/heads/main/workflows/default_workflow.json"
 
 APT_PACKAGES=(
-    #"package-1"
-    #"package-2"
+    "git"
+    "python3-pip"
+    "python3-venv"
+    "python3-dev"
+    "build-essential"
+    "libgl1"
+    "ffmpeg"
+    "libsm6"
+    "libxext6"
 )
 
 PIP_PACKAGES=(
-    #"package-1"
-    #"package-2"
+    "torch"
+    "torchvision"
+    "torchaudio"
+    "torchsde"
+    "numpy>=1.25.0"
+    "einops"
+    "transformers>=4.28.1"
+    "tokenizers>=0.13.3"
+    "sentencepiece"
+    "safetensors>=0.4.2"
+    "aiohttp>=3.11.8"
+    "yarl>=1.18.0"
+    "pyyaml"
+    "Pillow"
+    "scipy"
+    "tqdm"
+    "psutil"
+    "kornia>=0.7.1"
+    "diffusers"
+    "xformers"
+    "comfyui-frontend-package"
 )
 
 NODES=(
