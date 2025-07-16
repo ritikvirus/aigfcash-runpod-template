@@ -319,10 +319,10 @@
       ],
       "outputs": [],
       "properties": {
-        "aux_id": "rgthree/rgthree-comfy",
+        "cnr_id": "rgthree-comfy",
         "ver": "b84f39c7c224de765de0b54c55b967329011819d",
         "comparer_mode": "Slide",
-        "cnr_id": "rgthree-comfy",
+        "aux_id": "rgthree/rgthree-comfy",
         "widget_ue_connectable": {}
       },
       "widgets_values": [
@@ -431,10 +431,10 @@
         }
       ],
       "properties": {
-        "aux_id": "ltdrdata/ComfyUI-Impact-Pack",
+        "cnr_id": "comfyui-impact-pack",
         "ver": "0e3e6a193a68748b5e68cfd19fb6c7d92b2fac57",
         "Node name for S&R": "SAMLoader",
-        "cnr_id": "comfyui-impact-pack",
+        "aux_id": "ltdrdata/ComfyUI-Impact-Pack",
         "widget_ue_connectable": {}
       },
       "widgets_values": [
@@ -472,10 +472,10 @@
         }
       ],
       "properties": {
-        "aux_id": "ltdrdata/ComfyUI-Impact-Subpack",
+        "cnr_id": "comfyui-impact-subpack",
         "ver": "74db20c95eca152a6d686c914edc0ef4e4762cb8",
         "Node name for S&R": "UltralyticsDetectorProvider",
-        "cnr_id": "comfyui-impact-subpack",
+        "aux_id": "ltdrdata/ComfyUI-Impact-Subpack",
         "widget_ue_connectable": {}
       },
       "widgets_values": [
@@ -514,10 +514,10 @@
         }
       ],
       "properties": {
-        "aux_id": "ltdrdata/ComfyUI-Impact-Subpack",
+        "cnr_id": "comfyui-impact-subpack",
         "ver": "74db20c95eca152a6d686c914edc0ef4e4762cb8",
         "Node name for S&R": "UltralyticsDetectorProvider",
-        "cnr_id": "comfyui-impact-subpack",
+        "aux_id": "ltdrdata/ComfyUI-Impact-Subpack",
         "widget_ue_connectable": {}
       },
       "widgets_values": [
@@ -695,10 +695,10 @@
         }
       ],
       "properties": {
-        "aux_id": "ltdrdata/ComfyUI-Impact-Pack",
+        "cnr_id": "comfyui-impact-pack",
         "ver": "0e3e6a193a68748b5e68cfd19fb6c7d92b2fac57",
         "Node name for S&R": "FaceDetailer",
-        "cnr_id": "comfyui-impact-pack",
+        "aux_id": "ltdrdata/ComfyUI-Impact-Pack",
         "widget_ue_connectable": {}
       },
       "widgets_values": [
@@ -934,10 +934,10 @@
       ],
       "title": "grain (optional)",
       "properties": {
-        "aux_id": "WASasquatch/was-node-suite-comfyui",
+        "cnr_id": "was-node-suite-comfyui",
         "ver": "1014f8a1477b8ae0144e16ed4fd6476cd109fb23",
         "Node name for S&R": "Image Film Grain",
-        "cnr_id": "was-node-suite-comfyui",
+        "aux_id": "WASasquatch/was-node-suite-comfyui",
         "widget_ue_connectable": {}
       },
       "widgets_values": [
@@ -1012,10 +1012,10 @@
         }
       ],
       "properties": {
-        "aux_id": "ltdrdata/ComfyUI-Impact-Subpack",
+        "cnr_id": "comfyui-impact-subpack",
         "ver": "74db20c95eca152a6d686c914edc0ef4e4762cb8",
         "Node name for S&R": "UltralyticsDetectorProvider",
-        "cnr_id": "comfyui-impact-subpack",
+        "aux_id": "ltdrdata/ComfyUI-Impact-Subpack",
         "widget_ue_connectable": {}
       },
       "widgets_values": [
@@ -1023,100 +1023,6 @@
       ],
       "color": "#432",
       "bgcolor": "#653"
-    },
-    {
-      "id": 34,
-      "type": "Power Lora Loader (rgthree)",
-      "pos": {
-        "0": 741.814208984375,
-        "1": 277.7165222167969
-      },
-      "size": {
-        "0": 301.7860412597656,
-        "1": 214
-      },
-      "flags": {},
-      "order": 11,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 43,
-          "dir": 3
-        },
-        {
-          "name": "clip",
-          "type": "CLIP",
-          "link": 72,
-          "dir": 3
-        }
-      ],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "links": [
-            47,
-            84
-          ],
-          "slot_index": 0,
-          "dir": 4,
-          "shape": 3
-        },
-        {
-          "name": "CLIP",
-          "type": "CLIP",
-          "links": [
-            62,
-            63
-          ],
-          "slot_index": 1,
-          "dir": 4,
-          "shape": 3
-        }
-      ],
-      "properties": {
-        "aux_id": "rgthree/rgthree-comfy",
-        "ver": "b84f39c7c224de765de0b54c55b967329011819d",
-        "Show Strengths": "Single Strength",
-        "cnr_id": "rgthree-comfy",
-        "widget_ue_connectable": {}
-      },
-      "widgets_values": [
-        {},
-        {
-          "type": "PowerLoraLoaderHeaderWidget"
-        },
-        {
-          "on": true,
-          "lora": "TEENEMILYSMITH_LORA.safetensors",
-          "strength": 0.93,
-          "strengthTwo": null
-        },
-        {
-          "on": false,
-          "lora": "UnderboobXL.safetensors",
-          "strength": 0.93,
-          "strengthTwo": null
-        },
-        {
-          "on": false,
-          "lora": "zoom_slider_v1.safetensors",
-          "strength": -7,
-          "strengthTwo": null
-        },
-        {
-          "on": false,
-          "lora": "add_detail.safetensors",
-          "strength": 2,
-          "strengthTwo": null
-        },
-        {},
-        ""
-      ],
-      "color": "#323",
-      "bgcolor": "#535"
     },
     {
       "id": 7,
@@ -1274,10 +1180,10 @@
         }
       ],
       "properties": {
-        "aux_id": "cubiq/ComfyUI_essentials",
+        "cnr_id": "comfyui_essentials",
         "ver": "1.1.0",
         "Node name for S&R": "SDXLEmptyLatentSizePicker+",
-        "cnr_id": "comfyui_essentials",
+        "aux_id": "cubiq/ComfyUI_essentials",
         "widget_ue_connectable": {}
       },
       "widgets_values": [
@@ -1288,60 +1194,6 @@
       ],
       "color": "#323",
       "bgcolor": "#535"
-    },
-    {
-      "id": 52,
-      "type": "PerturbedAttention",
-      "pos": [
-        741.3861694335938,
-        557.8281860351562
-      ],
-      "size": [
-        301.65228271484375,
-        250
-      ],
-      "flags": {
-        "collapsed": false
-      },
-      "order": 14,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 84
-        }
-      ],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "links": [
-            80
-          ],
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "PerturbedAttention",
-        "cnr_id": "sd-perturbed-attention",
-        "ver": "42f9b61d21bdd391d9370cbe3c315828082b0bdc",
-        "widget_ue_connectable": {}
-      },
-      "widgets_values": [
-        3.5,
-        0,
-        "output",
-        0,
-        -1,
-        -1,
-        0,
-        "full",
-        ""
-      ],
-      "color": "#223",
-      "bgcolor": "#335",
-      "title": "magic"
     },
     {
       "id": 87,
@@ -1515,14 +1367,15 @@
             180,
             181
           ],
-          "shape": 3,
-          "slot_index": 0
+          "slot_index": 0,
+          "shape": 3
         }
       ],
       "properties": {
-        "aux_id": "Fannovel16/comfyui_controlnet_aux",
+        "cnr_id": "comfyui_controlnet_aux",
         "ver": "59b027e088c1c8facf7258f6e392d16d204b4d27",
-        "Node name for S&R": "AIO_Preprocessor"
+        "Node name for S&R": "AIO_Preprocessor",
+        "aux_id": "Fannovel16/comfyui_controlnet_aux"
       },
       "widgets_values": [
         "DepthAnythingV2Preprocessor",
@@ -1573,6 +1426,154 @@
       ],
       "color": "#223",
       "bgcolor": "#335"
+    },
+    {
+      "id": 34,
+      "type": "Power Lora Loader (rgthree)",
+      "pos": {
+        "0": 741.814208984375,
+        "1": 277.7165222167969
+      },
+      "size": {
+        "0": 301.7860412597656,
+        "1": 214
+      },
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 43,
+          "dir": 3
+        },
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 72,
+          "dir": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            47,
+            84
+          ],
+          "slot_index": 0,
+          "dir": 4,
+          "shape": 3
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            62,
+            63
+          ],
+          "slot_index": 1,
+          "dir": 4,
+          "shape": 3
+        }
+      ],
+      "properties": {
+        "cnr_id": "rgthree-comfy",
+        "ver": "b84f39c7c224de765de0b54c55b967329011819d",
+        "Show Strengths": "Single Strength",
+        "aux_id": "rgthree/rgthree-comfy",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        {},
+        {
+          "type": "PowerLoraLoaderHeaderWidget"
+        },
+        {
+          "on": false,
+          "lora": "TEENEMILYSMITH_LORA.safetensors",
+          "strength": 0.93,
+          "strengthTwo": null
+        },
+        {
+          "on": false,
+          "lora": "UnderboobXL.safetensors",
+          "strength": 0.93,
+          "strengthTwo": null
+        },
+        {
+          "on": false,
+          "lora": "zoom_slider_v1.safetensors",
+          "strength": -7,
+          "strengthTwo": null
+        },
+        {
+          "on": false,
+          "lora": "add_detail.safetensors",
+          "strength": 2,
+          "strengthTwo": null
+        },
+        {},
+        ""
+      ],
+      "color": "#323",
+      "bgcolor": "#535"
+    },
+    {
+      "id": 52,
+      "type": "PerturbedAttention",
+      "pos": [
+        741.3861694335938,
+        557.8281860351562
+      ],
+      "size": [
+        301.65228271484375,
+        250
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 84
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            80
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PerturbedAttention",
+        "cnr_id": "sd-perturbed-attention",
+        "ver": "42f9b61d21bdd391d9370cbe3c315828082b0bdc",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        3.5,
+        0,
+        "output",
+        0,
+        -1,
+        -1,
+        0,
+        "full",
+        ""
+      ],
+      "color": "#223",
+      "bgcolor": "#335",
+      "title": "magic"
     }
   ],
   "links": [
@@ -1923,72 +1924,24 @@
   ],
   "groups": [
     {
-      "title": "FaceDetailer",
+      "title": "OpenPose + FaceDetailer",
       "bounding": [
-        2475,
-        47,
-        905,
-        1044
+        731,
+        -1,
+        3999,
+        1162
       ],
-      "color": "#3f789e",
+      "color": "#444",
       "font_size": 24,
       "flags": {}
     },
     {
-      "title": "Control Net",
+      "title": "Loaders",
       "bounding": [
-        -198,
-        1170,
-        1312,
-        853
-      ],
-      "color": "#3f789e",
-      "font_size": 24,
-      "flags": {}
-    },
-    {
-      "title": "Upscale",
-      "bounding": [
-        3398,
-        61,
-        993,
-        1005
-      ],
-      "color": "#3f789e",
-      "font_size": 24,
-      "flags": {}
-    },
-    {
-      "title": "Previews",
-      "bounding": [
-        2181,
-        45,
-        280,
-        684
-      ],
-      "color": "#3f789e",
-      "font_size": 24,
-      "flags": {}
-    },
-    {
-      "title": "Decoders",
-      "bounding": [
-        1830,
-        46,
-        340,
-        683
-      ],
-      "color": "#3f789e",
-      "font_size": 24,
-      "flags": {}
-    },
-    {
-      "title": "Samplers",
-      "bounding": [
-        1491,
+        731,
         43,
-        329,
-        663
+        319,
+        889
       ],
       "color": "#3f789e",
       "font_size": 24,
@@ -2007,26 +1960,74 @@
       "flags": {}
     },
     {
-      "title": "Loaders",
+      "title": "Samplers",
       "bounding": [
-        731,
+        1491,
         43,
-        319,
-        889
+        329,
+        663
       ],
       "color": "#3f789e",
       "font_size": 24,
       "flags": {}
     },
     {
-      "title": "OpenPose + FaceDetailer",
+      "title": "Decoders",
       "bounding": [
-        731,
-        -1,
-        3999,
-        1162
+        1830,
+        46,
+        340,
+        683
       ],
-      "color": "#444",
+      "color": "#3f789e",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "title": "Previews",
+      "bounding": [
+        2181,
+        45,
+        280,
+        684
+      ],
+      "color": "#3f789e",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "title": "Upscale",
+      "bounding": [
+        3398,
+        61,
+        993,
+        1005
+      ],
+      "color": "#3f789e",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "title": "Control Net",
+      "bounding": [
+        -198,
+        1170,
+        1312,
+        853
+      ],
+      "color": "#3f789e",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "title": "FaceDetailer",
+      "bounding": [
+        2475,
+        47,
+        905,
+        1044
+      ],
+      "color": "#3f789e",
       "font_size": 24,
       "flags": {}
     }
@@ -2034,10 +2035,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.6727499949325713,
+      "scale": 0.5559917313492325,
       "offset": [
-        441.97708840260384,
-        -920.1507192371297
+        185.84686658420222,
+        93.80851126572979
       ]
     },
     "frontendVersion": "1.24.1",
