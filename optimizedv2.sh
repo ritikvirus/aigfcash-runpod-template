@@ -252,20 +252,29 @@ function provisioning_get_pip_packages() {
         fi
         printf "Detected CUDA version for PyTorch: %s\n" "$cuda_version"
 
-        # Install all packages except xformers first
-        local packages_no_xformers=()
+        printf "Forcibly uninstalling existing PyTorch packages...\n"
+        pip_uninstall torch torchvision torchaudio xformers || true
+
+        # Use stable PyTorch instead of nightly to avoid compatibility issues
+        printf "Installing stable PyTorch packages...\n"
+        pip_install torch torchvision torchaudio --index-url "https://download.pytorch.org/whl/${cuda_version}"
+
+        # Install other packages
+        local other_packages=()
         for pkg in "${PIP_PACKAGES[@]}"; do
-            if [[ "$pkg" != "xformers" ]]; then
-                packages_no_xformers+=("$pkg")
+            if [[ "$pkg" != "torch" && "$pkg" != "torchvision" && "$pkg" != "torchaudio" && "$pkg" != "xformers" ]]; then
+                other_packages+=("$pkg")
             fi
         done
 
-        printf "Installing base pip packages from PyTorch nightly...\n"
-        pip_install --pre --extra-index-url "https://download.pytorch.org/whl/nightly/${cuda_version}" "${packages_no_xformers[@]}"
+        if [[ ${#other_packages[@]} -gt 0 ]]; then
+            printf "Installing other pip packages...\n"
+            pip_install "${other_packages[@]}"
+        fi
 
-        # Force reinstall xformers to match the PyTorch nightly version
-        printf "Reinstalling xformers to match PyTorch nightly version...\n"
-        pip_install --pre --extra-index-url "https://download.pytorch.org/whl/nightly/${cuda_version}" --force-reinstall xformers
+        # Install xformers separately for better compatibility
+        printf "Installing xformers...\n"
+        pip_install xformers --index-url "https://download.pytorch.org/whl/${cuda_version}"
     fi
 }
 
@@ -277,7 +286,7 @@ function provisioning_get_nodes() {
 
     # Uninstall any pre-existing comfyui-frontend-package to ensure a clean install
     printf "Uninstalling any existing comfyui-frontend-package...\n"
-    pip_uninstall comfyui-frontend-package
+    pip_uninstall comfyui-frontend-package || true
 
     for repo in "${NODES[@]}"; do
         dir="${repo##*/}"
@@ -304,6 +313,8 @@ function provisioning_get_nodes() {
                 printf "Cloning a specific stable version of ComfyUI-Manager...\n"
                 git clone "${repo}" "${path}" --recursive
                 (cd "${path}" && git checkout 282d5a7)
+                printf "Locking ComfyUI-Manager to the checked-out version...\n"
+                (cd "${path}" && rm -rf .git)
             else
                 git clone "${repo}" "${path}" --recursive
             fi
@@ -507,40 +518,42 @@ function provisioning_download() {
     return 0
 }
 
-if provisioning_has_valid_hf_token; then
-    echo "Downloading bbox models..."
-    for url in "${ULTRALYTICS_BBOX_MODELS[@]}"; do
-        filename="face_yolov8m.pt"  # Fixed filename for bbox
-        target_dir="$WORKSPACE/ComfyUI/models/ultralytics/bbox"
-        if ! provisioning_download "$url" "$target_dir"; then
-            echo "ERROR: Failed to download bbox model"
-            continue
-        fi
-    done
+function start_additional_downloads() {
+    if provisioning_has_valid_hf_token; then
+        echo "Starting additional model downloads..."
+        
+        echo "Downloading bbox models..."
+        for url in "${ULTRALYTICS_BBOX_MODELS[@]}"; do
+            target_dir="$WORKSPACE/ComfyUI/models/ultralytics/bbox"
+            if ! provisioning_download "$url" "$target_dir"; then
+                echo "ERROR: Failed to download bbox model from $url"
+                continue
+            fi
+        done
 
-    echo "Downloading segm models..."
-    for url in "${ULTRALYTICS_SEGM_MODELS[@]}"; do
-        filename="yolov8m-seg.pt"  # Fixed filename for segm
-        target_dir="$WORKSPACE/ComfyUI/models/ultralytics/segm"
-        if ! provisioning_download "$url" "$target_dir"; then
-            echo "ERROR: Failed to download segm model"
-            continue
-        fi
-    done
+        echo "Downloading segm models..."
+        for url in "${ULTRALYTICS_SEGM_MODELS[@]}"; do
+            target_dir="$WORKSPACE/ComfyUI/models/ultralytics/segm"
+            if ! provisioning_download "$url" "$target_dir"; then
+                echo "ERROR: Failed to download segm model from $url"
+                continue
+            fi
+        done
 
-    echo "Starting SAM models download..."
-    echo "Downloading $(echo ${SAM_MODELS[@]} | wc -w) model(s) to $WORKSPACE/ComfyUI/models/sams..."
-    for url in "${SAM_MODELS[@]}"; do
-        provisioning_download "$url" "$WORKSPACE/ComfyUI/models/sams"
-    done
-    
-    echo "Starting Insightface models download..."
-    echo "Downloading $(echo ${INSIGHTFACE_MODELS[@]} | wc -w) model(s) to $WORKSPACE/ComfyUI/models/insightface..."
-    for url in "${INSIGHTFACE_MODELS[@]}"; do
-        provisioning_download "$url" "$WORKSPACE/ComfyUI/models/insightface"
-    done
-else
-    echo "ERROR: Invalid Hugging Face token. Cannot download models."
-fi
+        echo "Starting SAM models download..."
+        echo "Downloading $(echo ${SAM_MODELS[@]} | wc -w) model(s) to $WORKSPACE/ComfyUI/models/sams..."
+        for url in "${SAM_MODELS[@]}"; do
+            provisioning_download "$url" "$WORKSPACE/ComfyUI/models/sams"
+        done
+        
+        echo "Starting Insightface models download..."
+        echo "Downloading $(echo ${INSIGHTFACE_MODELS[@]} | wc -w) model(s) to $WORKSPACE/ComfyUI/models/insightface..."
+        for url in "${INSIGHTFACE_MODELS[@]}"; do
+            provisioning_download "$url" "$WORKSPACE/ComfyUI/models/insightface"
+        done
+    else
+        echo "ERROR: Invalid Hugging Face token. Cannot download additional models."
+    fi
+}
 
 provisioning_start
