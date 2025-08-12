@@ -16,6 +16,13 @@ APT_PACKAGES=(
     "ffmpeg"
     "libsm6"
     "libxext6"
+    "libavformat-dev"
+    "libavcodec-dev"
+    "libavdevice-dev"
+    "libavutil-dev"
+    "libswscale-dev"
+    "libswresample-dev"
+    "libsndfile1-dev"
 )
 
 PIP_PACKAGES=(
@@ -33,13 +40,13 @@ PIP_PACKAGES=(
     "yarl>=1.18.0"
     "pyyaml"
     "Pillow"
+    "av"
     "scipy"
     "tqdm"
     "psutil"
     "kornia>=0.7.1"
     "diffusers"
     "xformers"
-    "comfyui-frontend-package"
 )
 
 NODES=(
@@ -211,6 +218,14 @@ function pip_install() {
         fi
 }
 
+function pip_uninstall() {
+    if [[ -z $MAMBA_BASE ]]; then
+            "$COMFYUI_VENV_PIP" uninstall -y "$@"
+        else
+            micromamba run -n comfyui pip uninstall -y "$@"
+        fi
+}
+
 function provisioning_get_apt_packages() {
     if [[ -n $APT_PACKAGES ]]; then
             sudo $APT_INSTALL ${APT_PACKAGES[@]}
@@ -252,8 +267,9 @@ function provisioning_get_nodes() {
 
     pip_install --upgrade pip setuptools wheel
 
-    printf "Installing torchsde, a dependency for sd-perturbed-attention, from git...\n"
-    pip_install "git+https://github.com/google-research/torchsde.git"
+    # Uninstall any pre-existing comfyui-frontend-package to ensure a clean install
+    printf "Uninstalling any existing comfyui-frontend-package...\n"
+    pip_uninstall comfyui-frontend-package
 
     for repo in "${NODES[@]}"; do
         dir="${repo##*/}"
