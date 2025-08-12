@@ -260,12 +260,12 @@ function provisioning_get_pip_packages() {
             fi
         done
 
-        printf "Installing base pip packages...\n"
-        pip_install --extra-index-url "https://download.pytorch.org/whl/${cuda_version}" "${packages_no_xformers[@]}"
+        printf "Installing base pip packages from PyTorch nightly...\n"
+        pip_install --pre --extra-index-url "https://download.pytorch.org/whl/nightly/${cuda_version}" "${packages_no_xformers[@]}"
 
-        # Force reinstall xformers to match the PyTorch version
-        printf "Reinstalling xformers to match PyTorch version...\n"
-        pip_install --extra-index-url "https://download.pytorch.org/whl/${cuda_version}" --force-reinstall xformers
+        # Force reinstall xformers to match the PyTorch nightly version
+        printf "Reinstalling xformers to match PyTorch nightly version...\n"
+        pip_install --pre --extra-index-url "https://download.pytorch.org/whl/nightly/${cuda_version}" --force-reinstall xformers
     fi
 }
 
@@ -300,7 +300,13 @@ function provisioning_get_nodes() {
         # Download new node
         else
             printf "Downloading node: %s...\n" "${repo}"
-            git clone "${repo}" "${path}" --recursive
+            if [[ "${repo}" == "https://github.com/ltdrdata/ComfyUI-Manager" ]]; then
+                printf "Cloning a specific stable version of ComfyUI-Manager...\n"
+                git clone "${repo}" "${path}" --recursive
+                (cd "${path}" && git checkout 282d5a7)
+            else
+                git clone "${repo}" "${path}" --recursive
+            fi
             if [[ -e $requirements ]]; then
                 pip_install -r "$requirements"
             fi
