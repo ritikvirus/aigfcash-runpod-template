@@ -229,7 +229,20 @@ function provisioning_get_pip_packages() {
         fi
         printf "Detected CUDA version for PyTorch: %s\n" "$cuda_version"
 
-        pip_install --extra-index-url "https://download.pytorch.org/whl/${cuda_version}" ${PIP_PACKAGES[@]}
+        # Install all packages except xformers first
+        local packages_no_xformers=()
+        for pkg in "${PIP_PACKAGES[@]}"; do
+            if [[ "$pkg" != "xformers" ]]; then
+                packages_no_xformers+=("$pkg")
+            fi
+        done
+
+        printf "Installing base pip packages...\n"
+        pip_install --extra-index-url "https://download.pytorch.org/whl/${cuda_version}" "${packages_no_xformers[@]}"
+
+        # Force reinstall xformers to match the PyTorch version
+        printf "Reinstalling xformers to match PyTorch version...\n"
+        pip_install --extra-index-url "https://download.pytorch.org/whl/${cuda_version}" --force-reinstall xformers
     fi
 }
 
@@ -268,8 +281,12 @@ function provisioning_get_nodes() {
                 pip_install -r "$requirements"
             fi
             if [[ -e "${path}/pyproject.toml" ]] || [[ -e "${path}/setup.py" ]]; then
-                printf "Installing package in: %s\n" "${path}"
-                pip_install "${path}"
+                if [[ "${repo}" != "https://github.com/Gourieff/ComfyUI-ReActor" ]]; then
+                    printf "Installing package in: %s\n" "${path}"
+                    pip_install "${path}"
+                else
+                    printf "Skipping package installation for ComfyUI-ReActor to avoid build errors.\n"
+                fi
             fi
         fi
     done
