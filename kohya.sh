@@ -1,24 +1,21 @@
 #!/bin/bash
 
-# This script provisions a Runpod environment for Kohya_SS.
+# This file is sourced by the main default.sh script
+# and is used to provision the Kohya_SS environment.
 
-# Exit on error
-set -e
+# --- Configuration ---
 
-# Variables
-KOHYA_SS_DIR="/workspace/kohya_ss"
-KOHYA_SS_GIT_URL="https://github.com/bmaltais/kohya_ss.git"
-
-# --- System Packages ---
+# System packages to install
 APT_PACKAGES=(
     "git"
     "python3-pip"
     "python3-venv"
     "libgl1-mesa-glx"
     "libglib2.0-0"
+    "wget"
 )
 
-# --- Python Packages ---
+# Python packages to install
 PIP_PACKAGES=(
     "torch==2.1.2"
     "torchvision==0.16.2"
@@ -34,61 +31,29 @@ PIP_PACKAGES=(
     "gradio==3.48.0"
 )
 
-# --- Model Downloads ---
+# Models to download
 CHECKPOINT_MODELS=(
     "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0.safetensors"
     "https://huggingface.co/kingcashflow/modelcheckpoints/resolve/main/AIIM_Realism.safetensors"
 )
 
-# --- Helper Functions ---
+# --- Provisioning Logic --- 
+# (Do not edit below this line unless you know what you are doing)
 
-provisioning_print_header() {
-    echo "========================================="
-    echo "   Kohya_SS Runpod Provisioning Script   "
-    echo "========================================="
-}
+KOHYA_SS_DIR="/workspace/kohya_ss"
+KOHYA_SS_GIT_URL="https://github.com/bmaltais/kohya_ss.git"
 
-install_apt_packages() {
-    echo "--> Installing system packages..."
-    sudo apt-get update
-    sudo apt-get install -y "${APT_PACKAGES[@]}"
-}
-
-install_pip_packages() {
-    echo "--> Installing Python packages..."
-    pip install --upgrade pip
-    pip install "${PIP_PACKAGES[@]}"
-}
-
-clone_kohya_ss() {
+function clone_kohya_ss() {
     if [ ! -d "$KOHYA_SS_DIR" ]; then
-        echo "--> Cloning Kohya_SS repository..."
+        printf "Cloning Kohya_SS repository...\n"
         git clone "$KOHYA_SS_GIT_URL" "$KOHYA_SS_DIR"
     else
-        echo "--> Kohya_SS repository already exists. Skipping clone."
+        printf "Kohya_SS repository already exists. Skipping clone.\n"
     fi
-    cd "$KOHYA_SS_DIR"
 }
 
-download_models() {
-    echo "--> Downloading models..."
-    local model_dir="$KOHYA_SS_DIR/models/sdxl"
-    mkdir -p "$model_dir"
-
-    for url in "${CHECKPOINT_MODELS[@]}"; do
-        filename=$(basename "$url")
-        target_file="$model_dir/$filename"
-        if [ ! -f "$target_file" ]; then
-            echo "    -> Downloading $filename..."
-            wget -q -O "$target_file" "$url"
-        else
-            echo "    -> $filename already exists. Skipping."
-        fi
-    done
-}
-
-create_config_file() {
-    echo "--> Creating Kohya_SS config file..."
+function create_config_file() {
+    printf "Creating Kohya_SS config file...\n"
     cat <<EOF > "$KOHYA_SS_DIR/config.json"
 {
   "LoRA_type": "Standard",
@@ -249,20 +214,36 @@ create_config_file() {
 EOF
 }
 
-start_kohya_ss() {
-    echo "--> Launching Kohya_SS GUI..."
+function start_kohya_ss() {
+    printf "Launching Kohya_SS GUI...\n"
+    cd "$KOHYA_SS_DIR"
     ./gui.sh --listen 0.0.0.0 --server_port 7860 --headless --config "$KOHYA_SS_DIR/config.json"
 }
 
-# --- Main Execution ---
+function provisioning_start() {
+    # Source the main environment script
+    source /opt/ai-dock/etc/environment.sh
 
-provisioning_print_header
+    # Use the venv-set script to activate the python venv
+    # This is crucial for ensuring pip installs into the correct environment
+    source /opt/ai-dock/bin/venv-set.sh
 
-install_apt_packages
-clone_kohya_ss
-install_pip_packages
-download_models
-create_config_file
-start_kohya_ss
+    provisioning_print_header
+    
+    # Install system and python packages
+    provisioning_get_apt_packages
+    provisioning_get_pip_packages
 
-echo "--> Provisioning complete. Kohya_SS is running."
+    # Setup Kohya_SS
+    clone_kohya_ss
+    provisioning_get_models "$KOHYA_SS_DIR/models/sdxl" "${CHECKPOINT_MODELS[@]}"
+    create_config_file
+    
+    provisioning_print_end
+
+    # Start the application
+    start_kohya_ss
+}
+
+# This is the entry point of the script
+provisioning_start

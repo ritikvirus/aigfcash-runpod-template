@@ -210,60 +210,6 @@
       "bgcolor": "#535"
     },
     {
-      "id": 52,
-      "type": "PerturbedAttention",
-      "pos": [
-        -220.6435546875,
-        523.9696044921875
-      ],
-      "size": [
-        301.65228271484375,
-        250
-      ],
-      "flags": {
-        "collapsed": false
-      },
-      "order": 13,
-      "mode": 4,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 84
-        }
-      ],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "slot_index": 0,
-          "links": [
-            80
-          ]
-        }
-      ],
-      "title": "magic",
-      "properties": {
-        "cnr_id": "sd-perturbed-attention",
-        "ver": "42f9b61d21bdd391d9370cbe3c315828082b0bdc",
-        "Node name for S&R": "PerturbedAttention",
-        "widget_ue_connectable": {}
-      },
-      "widgets_values": [
-        3.5,
-        0,
-        "output",
-        0,
-        -1,
-        -1,
-        0,
-        "full",
-        ""
-      ],
-      "color": "#223",
-      "bgcolor": "#335"
-    },
-    {
       "id": 50,
       "type": "VAEDecode",
       "pos": [
@@ -980,7 +926,7 @@
         "widget_ue_connectable": {}
       },
       "widgets_values": [
-        237273763156442,
+        1104541239736585,
         "randomize",
         12,
         1,
@@ -1003,7 +949,7 @@
         351.1484375
       ],
       "flags": {},
-      "order": 16,
+      "order": 13,
       "mode": 0,
       "inputs": [
         {
@@ -1024,62 +970,6 @@
       "bgcolor": "#335"
     },
     {
-      "id": 25,
-      "type": "CheckpointLoaderSimple",
-      "pos": [
-        -222.19850158691406,
-        94.14875793457031
-      ],
-      "size": [
-        299.8365783691406,
-        98
-      ],
-      "flags": {},
-      "order": 6,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "slot_index": 0,
-          "links": [
-            43,
-            170
-          ]
-        },
-        {
-          "name": "CLIP",
-          "type": "CLIP",
-          "slot_index": 1,
-          "links": [
-            72,
-            174
-          ]
-        },
-        {
-          "name": "VAE",
-          "type": "VAE",
-          "slot_index": 2,
-          "links": [
-            171,
-            175
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.27",
-        "Node name for S&R": "CheckpointLoaderSimple",
-        "widget_ue_connectable": {}
-      },
-      "widgets_values": [
-        "epicrealismXL_vxviLastfameDMD2.safetensors"
-      ],
-      "color": "#223",
-      "bgcolor": "#335"
-    },
-    {
       "id": 7,
       "type": "CLIPTextEncode",
       "pos": [
@@ -1091,7 +981,7 @@
         179.08973693847656
       ],
       "flags": {},
-      "order": 15,
+      "order": 16,
       "mode": 0,
       "inputs": [
         {
@@ -1125,43 +1015,6 @@
       "bgcolor": "#533"
     },
     {
-      "id": 98,
-      "type": "ControlNetLoader",
-      "pos": [
-        -114.2350082397461,
-        1284.03125
-      ],
-      "size": [
-        315,
-        58
-      ],
-      "flags": {},
-      "order": 7,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "CONTROL_NET",
-          "type": "CONTROL_NET",
-          "slot_index": 0,
-          "links": [
-            158
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.27",
-        "Node name for S&R": "ControlNetLoader",
-        "widget_ue_connectable": {}
-      },
-      "widgets_values": [
-        "SDXL\\controlnet-dwpose-sdxl-1.0\\diffusion_pytorch_model.safetensors"
-      ],
-      "color": "#323",
-      "bgcolor": "#535"
-    },
-    {
       "id": 71,
       "type": "PreviewImage",
       "pos": [
@@ -1192,59 +1045,6 @@
       "widgets_values": [],
       "color": "#223",
       "bgcolor": "#335"
-    },
-    {
-      "id": 113,
-      "type": "DWPreprocessor",
-      "pos": [
-        299.3050842285156,
-        1496.3031005859375
-      ],
-      "size": [
-        295.0625,
-        222
-      ],
-      "flags": {},
-      "order": 12,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 181
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            180,
-            183
-          ]
-        },
-        {
-          "name": "POSE_KEYPOINT",
-          "type": "POSE_KEYPOINT",
-          "links": null
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfyui_controlnet_aux",
-        "ver": "1.0.7",
-        "Node name for S&R": "DWPreprocessor"
-      },
-      "widgets_values": [
-        "enable",
-        "enable",
-        "enable",
-        512,
-        "yolox_l.onnx",
-        "dw-ll_ucoco_384_bs5.torchscript.pt",
-        "disable"
-      ],
-      "color": "#323",
-      "bgcolor": "#535"
     },
     {
       "id": 100,
@@ -1332,7 +1132,7 @@
         274
       ],
       "flags": {},
-      "order": 8,
+      "order": 6,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -1353,6 +1153,152 @@
       }
     },
     {
+      "id": 86,
+      "type": "SDXLEmptyLatentSizePicker+",
+      "pos": [
+        111.93500518798828,
+        545.8741455078125
+      ],
+      "size": [
+        403.1999816894531,
+        170
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            177
+          ]
+        },
+        {
+          "name": "width",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_essentials",
+        "ver": "1.1.0",
+        "Node name for S&R": "SDXLEmptyLatentSizePicker+",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "896x1152 (0.78)",
+        8,
+        0,
+        0
+      ],
+      "color": "#323",
+      "bgcolor": "#535"
+    },
+    {
+      "id": 99,
+      "type": "LoadImage",
+      "pos": [
+        -152.2213592529297,
+        1467.976806640625
+      ],
+      "size": [
+        386.0576477050781,
+        446.9858093261719
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": [
+            181
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.27",
+        "Node name for S&R": "LoadImage",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "8.jpg",
+        "image"
+      ],
+      "color": "#223",
+      "bgcolor": "#335"
+    },
+    {
+      "id": 52,
+      "type": "PerturbedAttention",
+      "pos": [
+        -220.6435546875,
+        523.9696044921875
+      ],
+      "size": [
+        301.65228271484375,
+        250
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 84
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            80
+          ]
+        }
+      ],
+      "title": "magic",
+      "properties": {
+        "cnr_id": "sd-perturbed-attention",
+        "ver": "42f9b61d21bdd391d9370cbe3c315828082b0bdc",
+        "Node name for S&R": "PerturbedAttention",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        3.5,
+        0,
+        "output",
+        0,
+        -1,
+        -1,
+        0,
+        "full",
+        ""
+      ],
+      "color": "#223",
+      "bgcolor": "#335"
+    },
+    {
       "id": 34,
       "type": "Power Lora Loader (rgthree)",
       "pos": [
@@ -1364,7 +1310,7 @@
         214
       ],
       "flags": {},
-      "order": 11,
+      "order": 12,
       "mode": 0,
       "inputs": [
         {
@@ -1417,7 +1363,7 @@
         },
         {
           "on": true,
-          "lora": "ERROR_KAYLANUMI_OHWX_LORA.safetensors",
+          "lora": "WHITE007_LORA-000010.safetensors",
           "strength": 0.93,
           "strengthTwo": null
         },
@@ -1446,55 +1392,6 @@
       "bgcolor": "#535"
     },
     {
-      "id": 86,
-      "type": "SDXLEmptyLatentSizePicker+",
-      "pos": [
-        111.93500518798828,
-        545.8741455078125
-      ],
-      "size": [
-        403.1999816894531,
-        170
-      ],
-      "flags": {},
-      "order": 9,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "LATENT",
-          "type": "LATENT",
-          "links": [
-            177
-          ]
-        },
-        {
-          "name": "width",
-          "type": "INT",
-          "links": null
-        },
-        {
-          "name": "height",
-          "type": "INT",
-          "links": null
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfyui_essentials",
-        "ver": "1.1.0",
-        "Node name for S&R": "SDXLEmptyLatentSizePicker+",
-        "widget_ue_connectable": {}
-      },
-      "widgets_values": [
-        "896x1152 (0.78)",
-        8,
-        0,
-        0
-      ],
-      "color": "#323",
-      "bgcolor": "#535"
-    },
-    {
       "id": 6,
       "type": "CLIPTextEncode",
       "pos": [
@@ -1506,7 +1403,7 @@
         168.5941925048828
       ],
       "flags": {},
-      "order": 14,
+      "order": 15,
       "mode": 0,
       "inputs": [
         {
@@ -1534,21 +1431,77 @@
         "widget_ue_connectable": {}
       },
       "widgets_values": [
-        "photo of OHWX, woman, large breasts, fully clothed, sfw,\n\nwearing a an elegant black dress, nightlife,\n\nposing elegantly in a ballroom,\n\nFull body picture, camera slightly below eye-level, natural light from windows, \n\nbackground blurred, symmetrical composition, shallow depth of field, leading lines, rule of thirds"
+        "photo of OHWX, woman, long hair, breasts, smile, large breasts, brown hair, cleavage, brown eyes, jewelry, earrings, necklace, mole, lips, tan, armlet, tanlines, mole on breast, realistic,\n\nwearing a green crochet bikini, bikini top has halter neck style,\n\nbackground features lush greenery, pink flowers, and a stone bench to the right,\n\nfull body shot, eye-level angle,"
       ],
       "color": "#232",
       "bgcolor": "#353"
     },
     {
-      "id": 99,
-      "type": "LoadImage",
+      "id": 25,
+      "type": "CheckpointLoaderSimple",
       "pos": [
-        -152.2213592529297,
-        1467.976806640625
+        -222.19850158691406,
+        94.14875793457031
       ],
       "size": [
-        386.0576477050781,
-        446.9858093261719
+        299.8365783691406,
+        98
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            43,
+            170
+          ]
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "slot_index": 1,
+          "links": [
+            72,
+            174
+          ]
+        },
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "slot_index": 2,
+          "links": [
+            171,
+            175
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.27",
+        "Node name for S&R": "CheckpointLoaderSimple",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "AIIM_Realism_FAST.safetensors"
+      ],
+      "color": "#223",
+      "bgcolor": "#335"
+    },
+    {
+      "id": 98,
+      "type": "ControlNetLoader",
+      "pos": [
+        -114.2350082397461,
+        1284.03125
+      ],
+      "size": [
+        315,
+        58
       ],
       "flags": {},
       "order": 10,
@@ -1556,31 +1509,79 @@
       "inputs": [],
       "outputs": [
         {
-          "name": "IMAGE",
-          "type": "IMAGE",
+          "name": "CONTROL_NET",
+          "type": "CONTROL_NET",
           "slot_index": 0,
           "links": [
-            181
+            158
           ]
-        },
-        {
-          "name": "MASK",
-          "type": "MASK",
-          "links": null
         }
       ],
       "properties": {
         "cnr_id": "comfy-core",
         "ver": "0.3.27",
-        "Node name for S&R": "LoadImage",
+        "Node name for S&R": "ControlNetLoader",
         "widget_ue_connectable": {}
       },
       "widgets_values": [
-        "486626352_18375479950189539_1155424315022713276_n.jpg",
-        "image"
+        "SDXL/controlnet-dwpose-sdxl-1.0/diffusion_pytorch_model.safetensors"
       ],
-      "color": "#223",
-      "bgcolor": "#335"
+      "color": "#323",
+      "bgcolor": "#535"
+    },
+    {
+      "id": 113,
+      "type": "DWPreprocessor",
+      "pos": [
+        299.3050842285156,
+        1496.3031005859375
+      ],
+      "size": [
+        295.0625,
+        222
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 181
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            180,
+            183
+          ]
+        },
+        {
+          "name": "POSE_KEYPOINT",
+          "type": "POSE_KEYPOINT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_controlnet_aux",
+        "ver": "1.0.7",
+        "Node name for S&R": "DWPreprocessor",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "enable",
+        "enable",
+        "enable",
+        1024,
+        "yolox_l.onnx",
+        "dw-ll_ucoco_384_bs5.torchscript.pt",
+        "disable"
+      ],
+      "color": "#323",
+      "bgcolor": "#535"
     }
   ],
   "links": [
@@ -2053,13 +2054,13 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.6303940863131242,
+      "scale": 0.6934334949444367,
       "offset": [
-        821.3132916507864,
-        -1029.7415815673046
+        459.2597666493047,
+        -1149.3724067282742
       ]
     },
-    "frontendVersion": "1.19.9",
+    "frontendVersion": "1.25.4",
     "VHS_latentpreview": false,
     "VHS_latentpreviewrate": 0,
     "VHS_MetadataImage": true,

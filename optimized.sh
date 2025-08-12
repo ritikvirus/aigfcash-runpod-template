@@ -119,6 +119,7 @@ LORA_MODELS=(
 CONTROLNET_MODELS=(
     "https://huggingface.co/xinsir/controlnet-openpose-sdxl-1.0/resolve/main/diffusion_pytorch_model.safetensors"
     "https://huggingface.co/xinsir/controlnet-depth-sdxl-1.0/resolve/main/diffusion_pytorch_model.safetensors"
+    "https://huggingface.co/dimitribarbot/controlnet-dwpose-sdxl-1.0/resolve/main/diffusion_pytorch_model.safetensors"
 )
 ESRGAN_MODELS=()
 INSIGHTFACE_MODELS=(
@@ -218,7 +219,17 @@ function provisioning_get_apt_packages() {
 
 function provisioning_get_pip_packages() {
     if [[ -n $PIP_PACKAGES ]]; then
-            pip_install ${PIP_PACKAGES[@]}
+        # Determine CUDA version for PyTorch
+        local cuda_version=""
+        if [[ -n "$CUDA_VERSION" ]]; then
+            cuda_version="cu$(echo $CUDA_VERSION | sed 's/\.//g' | cut -c 1-3)"
+        else
+            # Fallback to a common version if not detected
+            cuda_version="cu124"
+        fi
+        printf "Detected CUDA version for PyTorch: %s\n" "$cuda_version"
+
+        pip_install --extra-index-url "https://download.pytorch.org/whl/${cuda_version}" ${PIP_PACKAGES[@]}
     fi
 }
 
@@ -228,8 +239,8 @@ function provisioning_get_nodes() {
 
     pip_install --upgrade pip setuptools wheel
 
-    printf "Installing torchsde, a dependency for sd-perturbed-attention...\n"
-    pip_install torchsde
+    printf "Installing torchsde, a dependency for sd-perturbed-attention, from git...\n"
+    pip_install "git+https://github.com/google-research/torchsde.git"
 
     for repo in "${NODES[@]}"; do
         dir="${repo##*/}"
@@ -263,7 +274,7 @@ function provisioning_get_nodes() {
         fi
     done
 
-    printf "Updating comfyui-frontend-package...\n"
+    printf "Updating comfyui-frontend-package to be compatible with Impact Pack...\n"
     pip_install --upgrade comfyui-frontend-package
 }
 
