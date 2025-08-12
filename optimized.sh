@@ -19,6 +19,7 @@ APT_PACKAGES=(
 )
 
 PIP_PACKAGES=(
+    "av"
     "torch"
     "torchvision"
     "torchaudio"
@@ -39,7 +40,7 @@ PIP_PACKAGES=(
     "kornia>=0.7.1"
     "diffusers"
     "xformers"
-    "comfyui-frontend-package"
+    "comfyui-frontend-package==1.14.5"
 )
 
 NODES=(
@@ -119,6 +120,7 @@ LORA_MODELS=(
 CONTROLNET_MODELS=(
     "https://huggingface.co/xinsir/controlnet-openpose-sdxl-1.0/resolve/main/diffusion_pytorch_model.safetensors"
     "https://huggingface.co/xinsir/controlnet-depth-sdxl-1.0/resolve/main/diffusion_pytorch_model.safetensors"
+    "https://huggingface.co/dimitribarbot/controlnet-dwpose-sdxl-1.0/resolve/main/diffusion_pytorch_model.safetensors"
 )
 ESRGAN_MODELS=()
 INSIGHTFACE_MODELS=(
