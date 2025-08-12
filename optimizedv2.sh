@@ -260,9 +260,6 @@ function provisioning_get_pip_packages() {
             fi
         done
 
-        printf "Forcibly uninstalling existing PyTorch packages...\n"
-        pip_uninstall torch torchvision torchaudio
-
         printf "Installing base pip packages from PyTorch nightly...\n"
         pip_install --pre --extra-index-url "https://download.pytorch.org/whl/nightly/${cuda_version}" "${packages_no_xformers[@]}"
 
@@ -307,8 +304,6 @@ function provisioning_get_nodes() {
                 printf "Cloning a specific stable version of ComfyUI-Manager...\n"
                 git clone "${repo}" "${path}" --recursive
                 (cd "${path}" && git checkout 282d5a7)
-                printf "Locking ComfyUI-Manager to the checked-out version...\n"
-                (cd "${path}" && rm -rf .git)
             else
                 git clone "${repo}" "${path}" --recursive
             fi
