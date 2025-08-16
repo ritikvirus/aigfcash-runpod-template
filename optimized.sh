@@ -1,28 +1,24 @@
 # This file will be sourced by default.sh (AI-Dock ComfyUI image)
 
-# ------------------------------------------------------------
-# Why these pins? 
-# - Pillow 10+ removed Image.LINEAR => break in legacy preprocessors
-# - huggingface_hub 0.26+ removed cached_download() => break in older diffusers add-ons
-# ------------------------------------------------------------
+# ----------- Why pins -----------
+# Pillow 10+ removed Image.LINEAR (use BILINEAR) -> pin <10 for legacy nodes
+# huggingface_hub 0.26+ removed cached_download() -> pin <0.26 for older diffusers add-ons
 
 DEFAULT_WORKFLOW="https://raw.githubusercontent.com/kingaigfcash/aigfcash-runpod-template/refs/heads/main/workflows/default_workflow.json"
 
-# -------- Packages you want from apt ----------
+# -------- APT ----------
 APT_PACKAGES=(
   "git" "python3-pip" "python3-venv" "python3-dev" "build-essential"
   "libgl1" "ffmpeg" "libsm6" "libxext6"
 )
 
-# -------- PIP pins that must be installed BEFORE nodes ----------
+# -------- PIP pins (install BEFORE nodes) ----------
 PIP_PINS=(
   "Pillow==9.5.0"
   "huggingface_hub==0.25.2"
 )
 
-# -------- General PIP deps (safe with the base image) ----------
-# (Deliberately NOT installing torch/torchvision/torchaudio/xformers/diffusers here:
-#  the image already ships CUDA-matched wheels; re-installing can break GPU acceleration.)
+# -------- General PIP deps (avoid reinstalling torch/xformers/diffusers here) ----------
 PIP_PACKAGES=(
   "av"
   "numpy>=1.25.0"
@@ -41,8 +37,8 @@ PIP_PACKAGES=(
   "comfyui-frontend-package==1.14.5"
 )
 
-# -------- Nodes to install/update ----------
-# NOTE: ComfyUI-LCM removed (archived/incompatible). Use sampler-lcm-alternative.
+# -------- Nodes ----------
+# NOTE: ComfyUI-LCM removed; use maintained sampler-lcm-alternative instead.
 NODES=(
   "https://github.com/ltdrdata/ComfyUI-Manager"
   "https://github.com/cubiq/ComfyUI_essentials"
@@ -92,7 +88,7 @@ WORKFLOWS=(
   "https://github.com/kingaigfcash/aigfcash-runpod-template.git"
 )
 
-# ----------------- Model URLs -----------------
+# -------- Models --------
 CHECKPOINT_MODELS=(
   "https://huggingface.co/kingcashflow/modelcheckpoints/resolve/main/AIIM_Realism.safetensors"
   "https://huggingface.co/kingcashflow/modelcheckpoints/resolve/main/AIIM_Realism_FAST.safetensors"
@@ -100,9 +96,7 @@ CHECKPOINT_MODELS=(
   "https://huggingface.co/AiWise/epiCRealism-XL-vXI-aBEAST/resolve/5c3950c035ce565d0358b76805de5ef2c74be919/epicrealismXL_vxiAbeast.safetensors"
 )
 UNET_MODELS=()
-VAE_MODELS=(
-  "https://huggingface.co/stabilityai/sdxl-vae/resolve/main/diffusion_pytorch_model.safetensors"
-)
+VAE_MODELS=("https://huggingface.co/stabilityai/sdxl-vae/resolve/main/diffusion_pytorch_model.safetensors")
 CLIP_MODELS=()
 LORA_MODELS=(
   "https://huggingface.co/kingcashflow/LoRas/resolve/main/depth_of_field_slider_v1.safetensors"
@@ -116,9 +110,7 @@ CONTROLNET_MODELS=(
   "https://huggingface.co/dimitribarbot/controlnet-dwpose-sdxl-1.0/resolve/main/diffusion_pytorch_model.safetensors"
 )
 ESRGAN_MODELS=()
-INSIGHTFACE_MODELS=(
-  "https://huggingface.co/datasets/Gourieff/ReActor/resolve/main/models/inswapper_128.onnx"
-)
+INSIGHTFACE_MODELS=("https://huggingface.co/datasets/Gourieff/ReActor/resolve/main/models/inswapper_128.onnx")
 ULTRALYTICS_BBOX_MODELS=(
   "https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8m.pt"
   "https://huggingface.co/Bingsu/adetailer/resolve/main/hand_yolov8n.pt"
@@ -126,22 +118,18 @@ ULTRALYTICS_BBOX_MODELS=(
   "https://huggingface.co/Bingsu/adetailer/resolve/main/hand_yolov9c.pt"
   "https://huggingface.co/kingcashflow/underboobXL/resolve/main/Eyeful_v2-Individual.pt"
 )
-ULTRALYTICS_SEGM_MODELS=(
-  "https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt"
-)
-SAM_MODELS=(
-  "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth"
-)
+ULTRALYTICS_SEGM_MODELS=("https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt")
+SAM_MODELS=("https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth")
 
 # ----------------- Provisioning flow -----------------
 
 provisioning_start() {
-  # Detect base and activate comfyui venv (AI-Dock image)
+  # Detect base and activate comfyui venv
   if [[ ! -d /opt/environments/python ]]; then export MAMBA_BASE=true; fi
   source /opt/ai-dock/etc/environment.sh
   source /opt/ai-dock/bin/venv-set.sh comfyui
 
-  # Persist caches to your network volume
+  # Persist caches into the network volume
   export WORKSPACE="${WORKSPACE%/}/"
   export HF_HOME="${WORKSPACE}.cache/huggingface"
   export XDG_CACHE_HOME="${WORKSPACE}.cache"
@@ -151,16 +139,16 @@ provisioning_start() {
   apt_update_and_upgrade
   provisioning_get_apt_packages
 
-  # ---- APPLY PINS BEFORE ANY NODE INSTALLS ----
+  # ---- Apply critical pins before any node install ----
   provisioning_install_pins
 
-  # Minimal tools & torchsde for sd-perturbed-attention
+  # Tools + compiler wheels
   install_build_tools_and_extras
 
-  # Now install/update nodes (installs each repo's requirements if present)
+  # Clone/update nodes and install per-node deps
   provisioning_get_nodes
 
-  # Remaining general Python deps (safe list)
+  # General deps
   provisioning_get_pip_packages
 
   # Models & workflows
@@ -173,7 +161,7 @@ provisioning_start() {
   start_additional_downloads
 }
 
-# Always use the ComfyUI venv pip; fallback to plain pip if not set
+# Always use ComfyUI venv pip; fallback to system pip if not set
 pip_install() {
   local PIP_BIN="${COMFYUI_VENV_PIP:-/opt/environments/python/comfyui/bin/pip}"
   command -v "$PIP_BIN" >/dev/null 2>&1 || PIP_BIN="pip"
@@ -191,7 +179,6 @@ provisioning_get_apt_packages() {
 
 provisioning_install_pins() {
   [[ -z ${PIP_PINS[*]} ]] && return 0
-  # Install pins and also save to a file in /workspace for future boots
   mkdir -p "${WORKSPACE}ComfyUI"
   printf "%s\n" "${PIP_PINS[@]}" > "${WORKSPACE}ComfyUI/requirements-pins.txt"
   pip_install -r "${WORKSPACE}ComfyUI/requirements-pins.txt"
@@ -208,33 +195,69 @@ provisioning_get_pip_packages() {
   [[ -n ${PIP_PACKAGES[*]} ]] && pip_install "${PIP_PACKAGES[@]}"
 }
 
+# ---- Robust node installer with retries + install.py/install.sh support ----
 provisioning_get_nodes() {
+  local PIP_BIN="${COMFYUI_VENV_PIP:-/opt/environments/python/comfyui/bin/pip}"
+  local PY_BIN="${COMFYUI_VENV_PYTHON:-/opt/environments/python/comfyui/bin/python}"
+  local MAX_RETRIES=${MAX_RETRIES:-3}
+
+  retry() { # retry <cmd...>
+    local n=0
+    until "$@"; do
+      n=$((n+1))
+      if [[ $n -ge $MAX_RETRIES ]]; then return 1; fi
+      echo "Retry $n/$MAX_RETRIES: $*"
+      sleep $((2*n))
+    done
+  }
+
   for repo in "${NODES[@]}"; do
     dir="${repo##*/}"
     path="${WORKSPACE}ComfyUI/custom_nodes/${dir}"
-    requirements="${path}/requirements.txt"
+    req="${path}/requirements.txt"
+    has_pkg=false
 
-    if [[ -d $path ]]; then
+    echo "==== Processing node: ${repo}"
+    if [[ -d "$path" ]]; then
       if [[ ${AUTO_UPDATE,,} != "false" ]]; then
-        printf "Updating node: %s...\n" "${repo}"
-        ( cd "$path" && git pull )
-        [[ -e $requirements ]] && pip_install -r "$requirements"
-        if [[ -e "${path}/pyproject.toml" ]] || [[ -e "${path}/setup.py" ]]; then
-          pip_install "${path}"
-        fi
+        echo "Updating ${dir}..."
+        ( cd "$path" && retry git pull --rebase --autostash ) || echo "WARN: git pull failed for ${dir}"
       fi
     else
-      printf "Cloning node: %s...\n" "${repo}"
-      git clone --recursive "${repo}" "${path}"
-      [[ -e $requirements ]] && pip_install -r "$requirements"
-      if [[ -e "${path}/pyproject.toml" ]] || [[ -e "${path}/setup.py" ]]; then
-        pip_install "${path}"
-      fi
+      echo "Cloning ${dir}..."
+      retry git clone --recursive "$repo" "$path" || { echo "ERROR: clone failed for ${dir}"; continue; }
+    fi
+
+    # 1) requirements.txt
+    if [[ -f "$req" ]]; then
+      echo "Installing ${dir} requirements..."
+      retry "$PIP_BIN" install --no-cache-dir -r "$req" || echo "WARN: requirements install failed for ${dir}"
+    fi
+
+    # 2) install.py / install.sh
+    if [[ -f "${path}/install.py" ]]; then
+      echo "Running ${dir}/install.py ..."
+      retry "$PY_BIN" "${path}/install.py" || echo "WARN: install.py failed for ${dir}"
+    fi
+    if [[ -x "${path}/install.sh" ]]; then
+      echo "Running ${dir}/install.sh ..."
+      ( cd "$path" && retry bash "./install.sh" ) || echo "WARN: install.sh failed for ${dir}"
+    fi
+
+    # 3) package install (editable) if pyproject/setup present
+    if [[ -f "${path}/pyproject.toml" || -f "${path}/setup.py" ]]; then
+      has_pkg=true
+      echo "Installing package ${dir} (editable)..."
+      retry "$PIP_BIN" install --no-cache-dir -e "$path" || echo "WARN: package install failed for ${dir}"
+    fi
+
+    if [[ ! -f "$req" && "${has_pkg}" = false ]]; then
+      echo "NOTE: ${dir} has no requirements.txt or package metadata — nothing to pip install."
     fi
   done
 
-  printf "Updating comfyui-frontend-package...\n"
-  pip_install --upgrade comfyui-frontend-package
+  echo "Updating comfyui-frontend-package…"
+  retry "$PIP_BIN" install --no-cache-dir --upgrade comfyui-frontend-package || echo "WARN: frontend upgrade failed"
 }
 
 provisioning_get_workflows() {
@@ -296,7 +319,7 @@ fetch_all_models() {
   provisioning_get_models "${WORKSPACE}ComfyUI/models/insightface" "${INSIGHTFACE_MODELS[@]}"
 }
 
-# --------- Helpers you already had ---------
+# -------- Helpers --------
 normalize_path() { echo "${1//\/\///}"; }
 
 provisioning_print_header() {
@@ -360,7 +383,7 @@ provisioning_download() {
   return 0
 }
 
-# Optional: token-gated model groups (unchanged from your script)
+# Optional token-gated groups (unchanged)
 if provisioning_has_valid_hf_token; then
   echo "Downloading bbox models..."
   for url in "${ULTRALYTICS_BBOX_MODELS[@]}"; do
