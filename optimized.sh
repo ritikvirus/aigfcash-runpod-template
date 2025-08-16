@@ -19,6 +19,7 @@ PIP_PACKAGES=(
   "imageio" "imageio-ffmpeg"
   "matplotlib"
   "av"
+  "colorama"
   "piexif"
   "pydantic-settings"
   "alembic"
@@ -228,7 +229,7 @@ function provisioning_fix_known_breakages() {
   fi
 
   # 4) Node-specific frequently-missed deps
-  pip_install "matplotlib" "imageio-ffmpeg" "piexif" "pydantic-settings" "uv"
+  pip_install "matplotlib" "imageio-ffmpeg" "piexif" "pydantic-settings" "uv" "colorama"
 
   # 5) Quick sanity import check; auto-heal common misses
   "$COMFYUI_VENV_PYTHON" - <<'PY'
