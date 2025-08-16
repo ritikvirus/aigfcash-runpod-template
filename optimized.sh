@@ -1,44 +1,20 @@
-# This file will be sourced by default.sh (AI-Dock ComfyUI image)
+#!/usr/bin/env bash
+set -euo pipefail
 
-# ----------- Why pins -----------
-# Pillow 10+ removed Image.LINEAR (use BILINEAR) -> pin <10 for legacy nodes
-# huggingface_hub 0.26+ removed cached_download() -> pin <0.26 for older diffusers add-ons
-
+# ====== Settings ======
 DEFAULT_WORKFLOW="https://raw.githubusercontent.com/kingaigfcash/aigfcash-runpod-template/refs/heads/main/workflows/default_workflow.json"
 
-# -------- APT ----------
-APT_PACKAGES=(
-  "git" "python3-pip" "python3-venv" "python3-dev" "build-essential"
-  "libgl1" "ffmpeg" "libsm6" "libxext6"
-)
+APT_PACKAGES=( git python3-pip python3-venv python3-dev build-essential libgl1 ffmpeg libsm6 libxext6 )
 
-# -------- PIP pins (install BEFORE nodes) ----------
-PIP_PINS=(
-  "Pillow==9.5.0"
-  "huggingface_hub==0.25.2"
-)
+# critical pins needed for legacy nodes
+PIP_PINS=( "Pillow==9.5.0" "huggingface_hub==0.25.2" "uv>=0.4.20" )
 
-# -------- General PIP deps (avoid reinstalling torch/xformers/diffusers here) ----------
-PIP_PACKAGES=(
-  "av"
-  "numpy>=1.25.0"
-  "einops"
-  "transformers>=4.28.1"
-  "tokenizers>=0.13.3"
-  "sentencepiece"
-  "safetensors>=0.4.2"
-  "aiohttp>=3.11.8"
-  "yarl>=1.18.0"
-  "pyyaml"
-  "scipy"
-  "tqdm"
-  "psutil"
-  "kornia>=0.7.1"
-  "comfyui-frontend-package==1.14.5"
-)
+# general deps (PyAV first so ComfyUI can import `av` on first start)
+PIP_PACKAGES=( "av" "numpy>=1.25.0" "einops" "transformers>=4.28.1" "tokenizers>=0.13.3" "sentencepiece"
+               "safetensors>=0.4.2" "aiohttp>=3.11.8" "yarl>=1.18.0" "pyyaml" "scipy" "tqdm" "psutil"
+               "kornia>=0.7.1" "comfyui-frontend-package==1.14.5" )
 
-# -------- Nodes ----------
-# NOTE: ComfyUI-LCM removed; use maintained sampler-lcm-alternative instead.
+# curated nodes
 NODES=(
   "https://github.com/ltdrdata/ComfyUI-Manager"
   "https://github.com/cubiq/ComfyUI_essentials"
@@ -84,11 +60,8 @@ NODES=(
   "https://github.com/jojkaart/ComfyUI-sampler-lcm-alternative"
 )
 
-WORKFLOWS=(
-  "https://github.com/kingaigfcash/aigfcash-runpod-template.git"
-)
+WORKFLOWS=( "https://github.com/kingaigfcash/aigfcash-runpod-template.git" )
 
-# -------- Models --------
 CHECKPOINT_MODELS=(
   "https://huggingface.co/kingcashflow/modelcheckpoints/resolve/main/AIIM_Realism.safetensors"
   "https://huggingface.co/kingcashflow/modelcheckpoints/resolve/main/AIIM_Realism_FAST.safetensors"
@@ -96,7 +69,7 @@ CHECKPOINT_MODELS=(
   "https://huggingface.co/AiWise/epiCRealism-XL-vXI-aBEAST/resolve/5c3950c035ce565d0358b76805de5ef2c74be919/epicrealismXL_vxiAbeast.safetensors"
 )
 UNET_MODELS=()
-VAE_MODELS=("https://huggingface.co/stabilityai/sdxl-vae/resolve/main/diffusion_pytorch_model.safetensors")
+VAE_MODELS=( "https://huggingface.co/stabilityai/sdxl-vae/resolve/main/diffusion_pytorch_model.safetensors" )
 CLIP_MODELS=()
 LORA_MODELS=(
   "https://huggingface.co/kingcashflow/LoRas/resolve/main/depth_of_field_slider_v1.safetensors"
@@ -110,7 +83,7 @@ CONTROLNET_MODELS=(
   "https://huggingface.co/dimitribarbot/controlnet-dwpose-sdxl-1.0/resolve/main/diffusion_pytorch_model.safetensors"
 )
 ESRGAN_MODELS=()
-INSIGHTFACE_MODELS=("https://huggingface.co/datasets/Gourieff/ReActor/resolve/main/models/inswapper_128.onnx")
+INSIGHTFACE_MODELS=( "https://huggingface.co/datasets/Gourieff/ReActor/resolve/main/models/inswapper_128.onnx" )
 ULTRALYTICS_BBOX_MODELS=(
   "https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8m.pt"
   "https://huggingface.co/Bingsu/adetailer/resolve/main/hand_yolov8n.pt"
@@ -118,295 +91,175 @@ ULTRALYTICS_BBOX_MODELS=(
   "https://huggingface.co/Bingsu/adetailer/resolve/main/hand_yolov9c.pt"
   "https://huggingface.co/kingcashflow/underboobXL/resolve/main/Eyeful_v2-Individual.pt"
 )
-ULTRALYTICS_SEGM_MODELS=("https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt")
-SAM_MODELS=("https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth")
+ULTRALYTICS_SEGM_MODELS=( "https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt" )
+SAM_MODELS=( "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth" )
 
-# ----------------- Provisioning flow -----------------
+# ====== Helpers ======
+normalize_path(){ echo "${1//\/\///}"; }
 
-provisioning_start() {
-  # Detect base and activate comfyui venv
-  if [[ ! -d /opt/environments/python ]]; then export MAMBA_BASE=true; fi
-  source /opt/ai-dock/etc/environment.sh
-  source /opt/ai-dock/bin/venv-set.sh comfyui
-
-  # Persist caches into the network volume
-  export WORKSPACE="${WORKSPACE%/}/"
-  export HF_HOME="${WORKSPACE}.cache/huggingface"
-  export XDG_CACHE_HOME="${WORKSPACE}.cache"
-  export TORCH_HOME="${WORKSPACE}.cache/torch"
-
-  provisioning_print_header
-  apt_update_and_upgrade
-  provisioning_get_apt_packages
-
-  # ---- Apply critical pins before any node install ----
-  provisioning_install_pins
-
-  # Tools + compiler wheels
-  install_build_tools_and_extras
-
-  # Clone/update nodes and install per-node deps
-  provisioning_get_nodes
-
-  # General deps
-  provisioning_get_pip_packages
-
-  # Models & workflows
-  make_model_dirs
-  fetch_all_models
-  provisioning_get_workflows
-  provisioning_get_default_workflow
-
-  provisioning_print_end
-  start_additional_downloads
-}
-
-# Always use ComfyUI venv pip; fallback to system pip if not set
 pip_install() {
   local PIP_BIN="${COMFYUI_VENV_PIP:-/opt/environments/python/comfyui/bin/pip}"
   command -v "$PIP_BIN" >/dev/null 2>&1 || PIP_BIN="pip"
   "$PIP_BIN" install --no-cache-dir "$@"
 }
 
-apt_update_and_upgrade() {
-  sudo apt-get update -y
-  sudo apt-get upgrade -y
+retry(){ # retry <cmd...>
+  local n=0 max=${MAX_RETRIES:-3}
+  until "$@"; do
+    n=$((n+1)); [[ $n -ge $max ]] && return 1
+    echo "Retry $n/$max: $*"; sleep $((2*n))
+  done
 }
 
-provisioning_get_apt_packages() {
-  [[ -n ${APT_PACKAGES[*]} ]] && sudo $APT_INSTALL "${APT_PACKAGES[@]}"
+provisioning_print_header(){
+  printf "\n===== Provisioning container =====\n"
 }
 
-provisioning_install_pins() {
+provisioning_print_end(){
+  printf "\nProvisioning complete: Web UI will start now\n"
+}
+
+apt_update_and_upgrade(){
+  sudo apt-get update -y && sudo apt-get upgrade -y
+}
+
+provisioning_get_apt_packages(){
+  [[ -n ${APT_PACKAGES[*]} ]] && sudo ${APT_INSTALL:-"apt-get install -y --no-install-recommends"} "${APT_PACKAGES[@]}"
+}
+
+provisioning_install_pins(){
   [[ -z ${PIP_PINS[*]} ]] && return 0
-  mkdir -p "${WORKSPACE}ComfyUI"
-  printf "%s\n" "${PIP_PINS[@]}" > "${WORKSPACE}ComfyUI/requirements-pins.txt"
-  pip_install -r "${WORKSPACE}ComfyUI/requirements-pins.txt"
+  printf "%s\n" "${PIP_PINS[@]}" > "/tmp/requirements-pins.txt"
+  pip_install -r /tmp/requirements-pins.txt
 }
 
-install_build_tools_and_extras() {
-  printf "Installing build tools & torchsde...\n"
+install_build_tools_and_extras(){
   sudo apt-get update && sudo apt-get install -y build-essential
   pip_install --upgrade pip setuptools wheel
-  pip_install torchsde
 }
 
-provisioning_get_pip_packages() {
+provisioning_get_pip_packages(){
   [[ -n ${PIP_PACKAGES[*]} ]] && pip_install "${PIP_PACKAGES[@]}"
 }
 
-# ---- Robust node installer with retries + install.py/install.sh support ----
-provisioning_get_nodes() {
+provisioning_get_nodes(){
   local PIP_BIN="${COMFYUI_VENV_PIP:-/opt/environments/python/comfyui/bin/pip}"
   local PY_BIN="${COMFYUI_VENV_PYTHON:-/opt/environments/python/comfyui/bin/python}"
-  local MAX_RETRIES=${MAX_RETRIES:-3}
-
-  retry() { # retry <cmd...>
-    local n=0
-    until "$@"; do
-      n=$((n+1))
-      if [[ $n -ge $MAX_RETRIES ]]; then return 1; fi
-      echo "Retry $n/$MAX_RETRIES: $*"
-      sleep $((2*n))
-    done
-  }
+  local WORK="${WORKSPACE%/}/ComfyUI/custom_nodes"
+  mkdir -p "$WORK"
 
   for repo in "${NODES[@]}"; do
     dir="${repo##*/}"
-    path="${WORKSPACE}ComfyUI/custom_nodes/${dir}"
-    req="${path}/requirements.txt"
-    has_pkg=false
-
-    echo "==== Processing node: ${repo}"
+    path="$WORK/$dir"
+    req="$path/requirements.txt"
+    echo "---- Node: $dir"
     if [[ -d "$path" ]]; then
-      if [[ ${AUTO_UPDATE,,} != "false" ]]; then
-        echo "Updating ${dir}..."
-        ( cd "$path" && retry git pull --rebase --autostash ) || echo "WARN: git pull failed for ${dir}"
-      fi
+      [[ ${AUTO_UPDATE,,} != "false" ]] && ( cd "$path" && retry git pull --rebase --autostash || true )
     else
-      echo "Cloning ${dir}..."
-      retry git clone --recursive "$repo" "$path" || { echo "ERROR: clone failed for ${dir}"; continue; }
+      retry git clone --recursive "$repo" "$path" || { echo "ERROR: clone failed: $dir"; continue; }
     fi
-
-    # 1) requirements.txt
-    if [[ -f "$req" ]]; then
-      echo "Installing ${dir} requirements..."
-      retry "$PIP_BIN" install --no-cache-dir -r "$req" || echo "WARN: requirements install failed for ${dir}"
-    fi
-
-    # 2) install.py / install.sh
-    if [[ -f "${path}/install.py" ]]; then
-      echo "Running ${dir}/install.py ..."
-      retry "$PY_BIN" "${path}/install.py" || echo "WARN: install.py failed for ${dir}"
-    fi
-    if [[ -x "${path}/install.sh" ]]; then
-      echo "Running ${dir}/install.sh ..."
-      ( cd "$path" && retry bash "./install.sh" ) || echo "WARN: install.sh failed for ${dir}"
-    fi
-
-    # 3) package install (editable) if pyproject/setup present
-    if [[ -f "${path}/pyproject.toml" || -f "${path}/setup.py" ]]; then
-      has_pkg=true
-      echo "Installing package ${dir} (editable)..."
-      retry "$PIP_BIN" install --no-cache-dir -e "$path" || echo "WARN: package install failed for ${dir}"
-    fi
-
-    if [[ ! -f "$req" && "${has_pkg}" = false ]]; then
-      echo "NOTE: ${dir} has no requirements.txt or package metadata — nothing to pip install."
+    [[ -f "$req" ]] && retry "$PIP_BIN" install --no-cache-dir -r "$req" || true
+    [[ -f "$path/install.py" ]] && retry "$PY_BIN" "$path/install.py" || true
+    [[ -x "$path/install.sh" ]] && ( cd "$path" && retry bash ./install.sh ) || true
+    if [[ -f "$path/pyproject.toml" || -f "$path/setup.py" ]]; then
+      retry "$PIP_BIN" install --no-cache-dir -e "$path" || true
     fi
   done
 
-  echo "Updating comfyui-frontend-package…"
-  retry "$PIP_BIN" install --no-cache-dir --upgrade comfyui-frontend-package || echo "WARN: frontend upgrade failed"
+  retry "$PIP_BIN" install --no-cache-dir --upgrade comfyui-frontend-package || true
 }
 
-provisioning_get_workflows() {
+make_model_dirs(){
+  mkdir -p "${WORKSPACE%/}/ComfyUI/models/"{checkpoints,ultralytics/bbox,ultralytics/segm,sams,insightface}
+  mkdir -p "${WORKSPACE%/}/storage/stable_diffusion/models/"{unet,clip,lora,controlnet,vae,esrgan}
+}
+
+provisioning_download(){
+  local url="$1" target_dir="$2" auth=""
+  target_dir=$(normalize_path "$target_dir"); mkdir -p "$target_dir"
+  [[ $url =~ ^https://huggingface.co ]] && auth="$HF_TOKEN"
+  [[ $url =~ ^https://civitai.com ]] && auth="$CIVITAI_TOKEN"
+  local out="$target_dir/$(basename "$url")"
+  if [[ -s "$out" ]]; then echo "Skip existing: $out"; return 0; fi
+  if [[ -n "$auth" ]]; then
+    curl -fsSL -H "Authorization: Bearer $auth" -o "$out" "$url"
+  else
+    curl -fsSL -o "$out" "$url"
+  fi
+}
+
+provisioning_get_models(){
+  [[ -z ${2:-} ]] && return 0
+  local dir="$1"; shift
+  for u in "$@"; do provisioning_download "$u" "$dir"; done
+}
+
+fetch_all_models(){
+  provisioning_get_models "${WORKSPACE%/}/ComfyUI/models/checkpoints" "${CHECKPOINT_MODELS[@]}"
+  provisioning_get_models "${WORKSPACE%/}/storage/stable_diffusion/models/unet" "${UNET_MODELS[@]}"
+  provisioning_get_models "${WORKSPACE%/}/storage/stable_diffusion/models/clip" "${CLIP_MODELS[@]}"
+  provisioning_get_models "${WORKSPACE%/}/storage/stable_diffusion/models/lora" "${LORA_MODELS[@]}"
+  provisioning_get_models "${WORKSPACE%/}/storage/stable_diffusion/models/controlnet" "${CONTROLNET_MODELS[@]}"
+  provisioning_get_models "${WORKSPACE%/}/storage/stable_diffusion/models/vae" "${VAE_MODELS[@]}"
+  provisioning_get_models "${WORKSPACE%/}/storage/stable_diffusion/models/esrgan" "${ESRGAN_MODELS[@]}"
+  provisioning_get_models "${WORKSPACE%/}/ComfyUI/models/ultralytics/bbox" "${ULTRALYTICS_BBOX_MODELS[@]}"
+  provisioning_get_models "${WORKSPACE%/}/ComfyUI/models/ultralytics/segm" "${ULTRALYTICS_SEGM_MODELS[@]}"
+  provisioning_get_models "${WORKSPACE%/}/ComfyUI/models/sams" "${SAM_MODELS[@]}"
+  provisioning_get_models "${WORKSPACE%/}/ComfyUI/models/insightface" "${INSIGHTFACE_MODELS[@]}"
+}
+
+provisioning_get_workflows(){
   for repo in "${WORKFLOWS[@]}"; do
     dir=$(basename "$repo" .git)
-    temp_path="/tmp/${dir}"
-    target_path="${WORKSPACE}ComfyUI/user/default/workflows"
-    if [[ -d "$temp_path" ]]; then
-      [[ ${AUTO_UPDATE,,} != "false" ]] && ( cd "$temp_path" && git pull )
+    temp="/tmp/$dir"; tgt="${WORKSPACE%/}/ComfyUI/user/default/workflows"
+    if [[ -d "$temp" ]]; then
+      [[ ${AUTO_UPDATE,,} != "false" ]] && ( cd "$temp" && git pull )
     else
-      git clone "$repo" "$temp_path"
+      git clone "$repo" "$temp"
     fi
-    mkdir -p "$target_path"
-    [[ -d "$temp_path/workflows" ]] && cp -r "$temp_path/workflows"/* "$target_path/"
+    mkdir -p "$tgt"
+    [[ -d "$temp/workflows" ]] && cp -r "$temp/workflows"/* "$tgt/" || true
   done
 }
 
-provisioning_get_default_workflow() {
-  if [[ -n $DEFAULT_WORKFLOW ]]; then
-    workflow_json=$(curl -s "$DEFAULT_WORKFLOW")
-    if [[ -n $workflow_json ]]; then
-      echo "export const defaultGraph = $workflow_json;" > "${WORKSPACE}ComfyUI/web/scripts/defaultGraph.js"
-    fi
-  fi
+provisioning_get_default_workflow(){
+  [[ -z "$DEFAULT_WORKFLOW" ]] && return 0
+  wf=$(curl -fsSL "$DEFAULT_WORKFLOW" || true)
+  [[ -z "$wf" ]] || echo "export const defaultGraph = $wf;" > "${WORKSPACE%/}/ComfyUI/web/scripts/defaultGraph.js"
 }
 
-make_model_dirs() {
-  mkdir -p "${WORKSPACE}ComfyUI/models/checkpoints"
-  mkdir -p "${WORKSPACE}ComfyUI/models/ultralytics/bbox"
-  mkdir -p "${WORKSPACE}ComfyUI/models/ultralytics/segm"
-  mkdir -p "${WORKSPACE}ComfyUI/models/sams"
-  mkdir -p "${WORKSPACE}ComfyUI/models/insightface"
-  mkdir -p "${WORKSPACE}storage/stable_diffusion/models/"{unet,clip,lora,controlnet,vae,esrgan}
+provisioning_has_valid_hf_token(){
+  [[ -n "${HF_TOKEN:-}" ]] || return 1
+  curl -fsS -o /dev/null -H "Authorization: Bearer $HF_TOKEN" https://huggingface.co/api/whoami-v2
 }
 
-provisioning_get_models() {
-  [[ -z $2 ]] && return 1
-  dir=$(normalize_path "$1"); mkdir -p "$dir"; shift
-  arr=("$@")
-  printf "Downloading %s model(s) to %s...\n" "${#arr[@]}" "$dir"
-  for url in "${arr[@]}"; do
-    printf "Downloading: %s\n" "${url}"
-    provisioning_download "${url}" "${dir}"
-    printf "\n"
-  done
+# ====== Entry ======
+provisioning_start(){
+  # activate comfyui venv the way AI-Dock expects
+  source /opt/ai-dock/etc/environment.sh
+  source /opt/ai-dock/bin/venv-set.sh comfyui
+
+  export HF_HOME="${WORKSPACE%/}/.cache/huggingface"
+  export XDG_CACHE_HOME="${WORKSPACE%/}/.cache"
+  export TORCH_HOME="${WORKSPACE%/}/.cache/torch"
+
+  provisioning_print_header
+  apt_update_and_upgrade
+  provisioning_get_apt_packages
+  provisioning_install_pins        # Pillow, huggingface_hub, uv
+  install_build_tools_and_extras
+  provisioning_get_pip_packages    # av + friends
+  provisioning_get_nodes           # clone/update nodes + reqs
+  make_model_dirs
+  fetch_all_models
+  provisioning_get_workflows
+  provisioning_get_default_workflow
+  provisioning_print_end
 }
 
-fetch_all_models() {
-  provisioning_get_models "${WORKSPACE}ComfyUI/models/checkpoints" "${CHECKPOINT_MODELS[@]}"
-  provisioning_get_models "${WORKSPACE}storage/stable_diffusion/models/unet" "${UNET_MODELS[@]}"
-  provisioning_get_models "${WORKSPACE}storage/stable_diffusion/models/clip" "${CLIP_MODELS[@]}"
-  provisioning_get_models "${WORKSPACE}storage/stable_diffusion/models/lora" "${LORA_MODELS[@]}"
-  provisioning_get_models "${WORKSPACE}storage/stable_diffusion/models/controlnet" "${CONTROLNET_MODELS[@]}"
-  provisioning_get_models "${WORKSPACE}storage/stable_diffusion/models/vae" "${VAE_MODELS[@]}"
-  provisioning_get_models "${WORKSPACE}storage/stable_diffusion/models/esrgan" "${ESRGAN_MODELS[@]}"
-  provisioning_get_models "${WORKSPACE}ComfyUI/models/ultralytics/bbox" "${ULTRALYTICS_BBOX_MODELS[@]}"
-  provisioning_get_models "${WORKSPACE}ComfyUI/models/ultralytics/segm" "${ULTRALYTICS_SEGM_MODELS[@]}"
-  provisioning_get_models "${WORKSPACE}ComfyUI/models/sams" "${SAM_MODELS[@]}"
-  provisioning_get_models "${WORKSPACE}ComfyUI/models/insightface" "${INSIGHTFACE_MODELS[@]}"
-}
-
-# -------- Helpers --------
-normalize_path() { echo "${1//\/\///}"; }
-
-provisioning_print_header() {
-  printf "\n##############################################\n#          Provisioning container            #\n##############################################\n\n"
-  if [[ $DISK_GB_ALLOCATED -lt $DISK_GB_REQUIRED ]]; then
-    printf "WARNING: Your allocated disk size (%sGB) is below the recommended %sGB\n" "$DISK_GB_ALLOCATED" "$DISK_GB_REQUIRED"
-  fi
-}
-
-provisioning_print_end() { printf "\nProvisioning complete:  Web UI will start now\n\n"; }
-
-provisioning_has_valid_hf_token() {
-  [[ -n "$HF_TOKEN" ]] || return 1
-  local url="https://huggingface.co/api/whoami-v2"
-  local code; code=$(curl -o /dev/null -s -w "%{http_code}" -H "Authorization: Bearer $HF_TOKEN" "$url")
-  [[ "$code" == "200" ]]
-}
-
-provisioning_has_valid_civitai_token() {
-  [[ -n "$CIVITAI_TOKEN" ]] || return 1
-  local url="https://civitai.com/api/v1/models?hidden=1&limit=1"
-  local code; code=$(curl -o /dev/null -s -w "%{http_code}" -H "Authorization: Bearer $CIVITAI_TOKEN" "$url")
-  [[ "$code" == "200" ]]
-}
-
-provisioning_download() {
-  local url="$1" target_dir="$2" auth_token="" filename=""
-  target_dir=$(normalize_path "$target_dir")
-  if [[ $url =~ ^https://huggingface.co ]]; then
-    auth_token="$HF_TOKEN"; echo "Using HuggingFace token"
-  elif [[ $url =~ ^https://civitai.com ]]; then
-    auth_token="$CIVITAI_TOKEN"; echo "Using CivitAI token"
-    if [[ $url =~ /api/download/models/([0-9]+) ]]; then
-      local model_id="${BASH_REMATCH[1]}"
-      local headers; headers=$(curl -sI -H "Authorization: Bearer $CIVITAI_TOKEN" "$url")
-      if [[ $headers =~ Content-Disposition:.*filename=\"?([^\";\r\n]+) ]]; then
-        filename="${BASH_REMATCH[1]}"
-      else
-        local redirect_url; redirect_url=$(curl -sI -H "Authorization: Bearer $CIVITAI_TOKEN" "$url" | grep -i "^location:" | cut -d' ' -f2 | tr -d '\r')
-        filename="${redirect_url##*/}"
-        [[ -z "$filename" ]] && filename="model_${model_id}.safetensors"
-      fi
-      echo "Will save as: $filename"
-    fi
-  fi
-  mkdir -p "$target_dir"
-  [[ -z $filename ]] && filename=$(basename "$url")
-  local target_file="$target_dir/$filename"
-  if [[ -s "$target_file" ]]; then
-    echo "File already exists and is not empty: $target_file"
-    echo "Skipping download..."; return 0
-  fi
-  echo "Downloading to: $target_file"
-  if [[ -n $auth_token ]]; then
-    curl -sS -L -H "Authorization: Bearer $auth_token" -o "$target_file" "$url"
-  else
-    curl -sS -L -o "$target_file" "$url"
-  fi
-  [[ -s "$target_file" ]] || { echo "ERROR: Download failed or file is empty"; return 1; }
-  echo "Download completed successfully"
-  return 0
-}
-
-# Optional token-gated groups (unchanged)
+# Optional gated downloads by HF token (bbox/segm/SAM/insightface)
 if provisioning_has_valid_hf_token; then
-  echo "Downloading bbox models..."
-  for url in "${ULTRALYTICS_BBOX_MODELS[@]}"; do
-    provisioning_download "$url" "$WORKSPACE/ComfyUI/models/ultralytics/bbox"
-  done
-
-  echo "Downloading segm models..."
-  for url in "${ULTRALYTICS_SEGM_MODELS[@]}"; do
-    provisioning_download "$url" "$WORKSPACE/ComfyUI/models/ultralytics/segm"
-  done
-
-  echo "Starting SAM models download..."
-  for url in "${SAM_MODELS[@]}"; do
-    provisioning_download "$url" "$WORKSPACE/ComfyUI/models/sams"
-  done
-
-  echo "Starting Insightface models download..."
-  for url in "${INSIGHTFACE_MODELS[@]}"; do
-    provisioning_download "$url" "$WORKSPACE/ComfyUI/models/insightface"
-  done
-else
-  echo "ERROR: Invalid Hugging Face token. Cannot download models."
+  :
 fi
 
-# Kick it off
 provisioning_start
