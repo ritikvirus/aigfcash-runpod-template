@@ -1,25 +1,22 @@
 #!/usr/bin/env bash
+# Re-exec with bash if invoked via sh
+if [ -z "${BASH_VERSION:-}" ]; then exec /usr/bin/env bash "$0" "$@"; fi
 set -Eeuo pipefail
 
-# === Trap for better error messages ===
-trap 'code=$?; echo -e "\e[1;31m[ERROR]\e[0m ${BASH_SOURCE[0]}:${LINENO} exit $code"; exit $code' ERR
-
 # ---------------------------
-# AIGFCash Runpod Bootstrapper (AI-Dock compatible)
-# - Clean first-boot install for ComfyUI + nodes + models
-# - Works with AI-Dock preflight and ComfyUI virtualenv
+# AIGFCash Runpod Bootstrapper (Blackwell-safe)
 # ---------------------------
 
 # ======== Tunables ========
-: "${COMFYUI_REF:=v0.3.50}"     # tag/branch/commit OR "latest"
-: "${AUTO_UPDATE:=true}"        # AI-Dock also has its own AUTO_UPDATE; this script is idempotent either way
+: "${COMFYUI_REF:=v0.3.50}"
+: "${AUTO_UPDATE:=true}"
 : "${WORKSPACE:=/workspace}"
-: "${COMFY_DIR:=${WORKSPACE%/}/ComfyUI}"
+: "${COMFY_DIR:=${WORKSPACE}/ComfyUI}"
 : "${HF_TOKEN:=}"
 : "${CIVITAI_TOKEN:=}"
 
-# Optional default workflow JSON → becomes ComfyUI's defaultGraph.js
-: "${DEFAULT_WORKFLOW:=https://raw.githubusercontent.com/kingaigfcash/aigfcash-runpod-template/main/workflows/default_workflow.json}"
+# Default workflow (optional)
+: "${DEFAULT_WORKFLOW:=https://raw.githubusercontent.com/kingaigfcash/aigfcash-runpod-template/refs/heads/main/workflows/default_workflow.json}"
 
 APT_PACKAGES=(
   git git-lfs curl ca-certificates build-essential pkg-config
@@ -28,12 +25,13 @@ APT_PACKAGES=(
 )
 
 BASE_PIP_PACKAGES=(
-  "pip" "setuptools" "wheel"
+  pip setuptools wheel
   "huggingface_hub==0.25.2"
-  "tqdm" "pyyaml" "psutil" "colorama" "imageio" "imageio-ffmpeg" "matplotlib"
-  "av" "piexif" "pydantic-settings" "uv" "einops" "scipy" "kornia>=0.7.1"
-  "safetensors>=0.4.2" "transformers>=4.28.1" "tokenizers>=0.13.3" "sentencepiece"
-  "timm" "albumentations" "shapely" "soundfile" "pydub"
+  tqdm pyyaml psutil colorama imageio imageio-ffmpeg matplotlib
+  av piexif pydantic-settings uv einops scipy "kornia>=0.7.1"
+  "safetensors>=0.4.2" "transformers>=4.28.1" "tokenizers>=0.13.3" sentencepiece
+  timm albumentations shapely
+  soundfile pydub
 )
 
 NODES=(
@@ -87,7 +85,7 @@ CHECKPOINT_MODELS=(
   https://huggingface.co/AiWise/epiCRealism-XL-vXI-aBEAST/resolve/5c3950c035ce565d0358b76805de5ef2c74be919/epicrealismXL_vxiAbeast.safetensors
 )
 UNET_MODELS=()
-VAE_MODELS=( https://huggingface.co/stabilityai/sdxl-vae/resolve/main/diffusion_pytorch_model.safetensors )
+VAE_MODELS=(https://huggingface.co/stabilityai/sdxl-vae/resolve/main/diffusion_pytorch_model.safetensors)
 CLIP_MODELS=()
 LORA_MODELS=(
   https://huggingface.co/kingcashflow/LoRas/resolve/main/depth_of_field_slider_v1.safetensors
@@ -101,7 +99,7 @@ CONTROLNET_MODELS=(
   https://huggingface.co/dimitribarbot/controlnet-dwpose-sdxl-1.0/resolve/main/diffusion_pytorch_model.safetensors
 )
 ESRGAN_MODELS=()
-INSIGHTFACE_MODELS=( https://huggingface.co/datasets/Gourieff/ReActor/resolve/main/models/inswapper_128.onnx )
+INSIGHTFACE_MODELS=(https://huggingface.co/datasets/Gourieff/ReActor/resolve/main/models/inswapper_128.onnx)
 ULTRALYTICS_BBOX_MODELS=(
   https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8m.pt
   https://huggingface.co/Bingsu/adetailer/resolve/main/hand_yolov8n.pt
@@ -109,227 +107,260 @@ ULTRALYTICS_BBOX_MODELS=(
   https://huggingface.co/Bingsu/adetailer/resolve/main/hand_yolov9c.pt
   https://huggingface.co/kingcashflow/underboobXL/resolve/main/Eyeful_v2-Individual.pt
 )
-ULTRALYTICS_SEGM_MODELS=( https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt )
-SAM_MODELS=( https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth )
+ULTRALYTICS_SEGM_MODELS=(https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt)
+SAM_MODELS=(https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth)
 
-WORKFLOWS=( https://github.com/kingaigfcash/aigfcash-runpod-template.git )
+WORKFLOWS=(https://github.com/kingaigfcash/aigfcash-runpod-template.git)
 
-log()  { printf "\e[1;32m[SETUP]\e[0m %s\n" "$*"; }
+# ======== Helpers ========
+log() { printf "\e[1;32m[SETUP]\e[0m %s\n" "$*"; }
 warn() { printf "\e[1;33m[WARN ]\e[0m %s\n" "$*"; }
-err()  { printf "\e[1;31m[ERROR]\e[0m %s\n" "$*"; }
+err() { printf "\e[1;31m[ERROR]\e[0m %s\n" "$*"; }
 
-sudo_if() { if command -v sudo >/dev/null 2>&1; then sudo "$@"; else "$@"; fi; }
+sudo_if(){ if command -v sudo >/dev/null 2>&1; then sudo "$@"; else "$@"; fi; }
 
-# Prefer AI-Dock's comfyui venv if present
-pipx() {
-  if [[ -n "${COMFYUI_VENV_PIP:-}" && -x "${COMFYUI_VENV_PIP}" ]]; then
-    "${COMFYUI_VENV_PIP}" "$@"
-  else
-    pip "$@"
-  fi
+# Use ComfyUI venv pip/python if present
+pipx(){
+  if [[ -n "${COMFYUI_VENV_PIP:-}" && -x "${COMFYUI_VENV_PIP}" ]]; then "${COMFYUI_VENV_PIP}" "$@"; else pip "$@"; fi
 }
-pyx() {
-  if [[ -n "${COMFYUI_VENV_PYTHON:-}" && -x "${COMFYUI_VENV_PYTHON}" ]]; then
-    "${COMFYUI_VENV_PYTHON}" "$@"
-  else
-    python3 "$@"
-  fi
+pyx(){
+  if [[ -n "${COMFYUI_VENV_PYTHON:-}" && -x "${COMFYUI_VENV_PYTHON}" ]]; then "${COMFYUI_VENV_PYTHON}" "$@"; else python3 "$@"; fi
 }
 
-# Auth check for HF
-have_hf_token() {
-  [[ -n "${HF_TOKEN}" ]] && curl -fsSL -H "Authorization: Bearer ${HF_TOKEN}" https://huggingface.co/api/whoami-v2 >/dev/null
-}
+have_hf_token(){ [[ -n "${HF_TOKEN}" ]] && curl -fsSL -H "Authorization: Bearer ${HF_TOKEN}" https://huggingface.co/api/whoami-v2 >/dev/null; }
 
-# Robust downloader with minimal corruption guard
-fetch() {
-  local url="$1" out="$2"
-  shift 2 || true
+fetch(){
+  local url="$1" out="$2"; shift 2 || true
   local auth=()
-  [[ "$url" =~ ^https://huggingface\.co ]] && [[ -n "${HF_TOKEN}" ]] && auth=(-H "Authorization: Bearer ${HF_TOKEN}")
-  [[ "$url" =~ ^https://civitai\.com ]]    && [[ -n "${CIVITAI_TOKEN}" ]] && auth=(-H "Authorization: Bearer ${CIVITAI_TOKEN}")
+  if [[ "$url" =~ ^https://huggingface\.co ]]; then
+    [[ -n "${HF_TOKEN}" ]] && auth=(-H "Authorization: Bearer ${HF_TOKEN}")
+  elif [[ "$url" =~ ^https://civitai\.com ]]; then
+    [[ -n "${CIVITAI_TOKEN}" ]] && auth=(-H "Authorization: Bearer ${CIVITAI_TOKEN}")
+  fi
   mkdir -p "$(dirname "$out")"
+  local i
   for i in 1 2 3; do
     curl -fL --retry 5 --retry-delay 2 "${auth[@]}" -o "$out.partial" "$url" && mv -f "$out.partial" "$out" || true
-    if [[ -s "$out" && $(stat -c%s "$out") -ge 262144 ]]; then
-      echo OK; return 0
-    fi
-    warn "download retry $i: $url"
-    sleep 2
+    if [[ -s "$out" && $(stat -c%s "$out") -ge 262144 ]]; then echo OK; return 0; fi
+    warn "download retry $i for $url"; sleep 2
   done
   return 1
 }
 
-prepare_env() {
-  log "Preparing environment..."
-  [[ -f /opt/ai-dock/etc/environment.sh ]] && source /opt/ai-dock/etc/environment.sh
-  [[ -f /opt/ai-dock/bin/venv-set.sh    ]] && source /opt/ai-dock/bin/venv-set.sh comfyui
-  umask 002
-  mkdir -p "${COMFY_DIR%/*}"
-}
-
-install_apt() {
-  log "Installing apt packages (best-effort)..."
-  sudo_if apt-get update -y || warn "apt update failed (non-root?)"
-  sudo_if apt-get install -y --no-install-recommends "${APT_PACKAGES[@]}" || warn "apt install skipped/failed"
-}
-
-clone_comfyui() {
-  log "Syncing ComfyUI repo..."
-  if [[ -d "${COMFY_DIR}/.git" ]]; then
-    ( cd "$COMFY_DIR"
-      git fetch --tags --prune
-      if [[ "${COMFYUI_REF}" == "latest" ]]; then
-        COMFYUI_REF="$(git describe --tags "$(git rev-list --tags --max-count=1)")"
+# ======== Torch selector (handles 50-series) ========
+TORCH_INDEX_URL=""
+TORCH_VERSION=""
+TORCHVISION_VERSION=""
+TORCHAUDIO_VERSION=""
+make_torch_plan(){
+  # default: respect current torch if present
+  local gpu="${RUNPOD_GPU_NAME:-$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null || true)}"
+  if [[ "$gpu" =~ (5080|5090|Blackwell|50[0-9]{2}) ]]; then
+    # Blackwell requires CUDA 12.8 builds
+    TORCH_INDEX_URL="https://download.pytorch.org/whl/cu128"
+    TORCH_VERSION="${TORCH_VERSION_OVERRIDE:-2.8.0}"
+    TORCHVISION_VERSION="${TORCHVISION_VERSION_OVERRIDE:-0.23.0}"
+    TORCHAUDIO_VERSION="${TORCHAUDIO_VERSION_OVERRIDE:-2.8.0}"
+    log "Detected ${gpu:-GPU}; planning PyTorch ${TORCH_VERSION} (cu128)."
+  else
+    # If torch already present, match its minor for vision/audio; otherwise default to cu121 baseline
+    TORCH_INDEX_URL="https://download.pytorch.org/whl/cu121"
+    if pyx - <<'PY' >/dev/null 2>&1; then
+import torch, sys; print(torch.__version__.split('+')[0])
+PY
+    then
+      local tv=""
+      local ta=""
+      local tver="$(pyx - <<'PY'
+import torch, sys; print(torch.__version__.split('+')[0])
+PY
+)"
+      case "$tver" in
+        2.4.*) tv=0.19.1; ta=2.4.1;;
+        2.5.*) tv=0.20.1; ta=2.5.1;;
+        2.6.*) tv=0.21.0; ta=2.6.0;;
+        *) tv=""; ta="";;
+      esac
+      if [[ -n "$tv" ]]; then
+        TORCH_VERSION="$tver"; TORCHVISION_VERSION="$tv"; TORCHAUDIO_VERSION="$ta"
+        log "Matching existing torch ${TORCH_VERSION} (cu121) with torchvision ${tv}, torchaudio ${ta}."
       fi
-      git checkout -f "${COMFYUI_REF}"
-      # No plain 'git pull' on detached HEAD; update only if on a branch
-      if git rev-parse --abbrev-ref HEAD | grep -vq '^HEAD$'; then git pull --ff-only || true; fi
-    )
+    fi
+  fi
+}
+
+install_torch_stack(){
+  [[ -z "$TORCH_VERSION" ]] && return 0
+  log "Installing pinned torch stack from ${TORCH_INDEX_URL} ..."
+  pipx install --upgrade --index-url "$TORCH_INDEX_URL" "torch==${TORCH_VERSION}" "torchvision==${TORCHVISION_VERSION}" "torchaudio==${TORCHAUDIO_VERSION}"
+  # Remove incompatible xformers if present; ComfyUI runs fine without it
+  pipx uninstall -y xformers || true
+  # Global constraints so nodes cannot change torch later
+  cat > /tmp/torch-constraints.txt <<EOF
+torch==${TORCH_VERSION}
+torchvision==${TORCHVISION_VERSION}
+torchaudio==${TORCHAUDIO_VERSION}
+EOF
+}
+
+# ======== Steps ========
+prepare_env(){
+  export PIP_NO_INPUT=1
+  log "Preparing environment..."
+  if [[ -f /opt/ai-dock/etc/environment.sh ]]; then source /opt/ai-dock/etc/environment.sh; fi
+  if [[ -f /opt/ai-dock/bin/venv-set.sh ]]; then source /opt/ai-dock/bin/venv-set.sh comfyui; fi
+}
+
+install_apt(){
+  log "Installing apt packages..."
+  sudo_if apt-get update -y || warn "apt update failed; continuing..."
+  sudo_if apt-get install -y --no-install-recommends "${APT_PACKAGES[@]}" || warn "apt install skipped/failed."
+}
+
+clone_comfyui(){
+  log "Cloning/Updating ComfyUI (${COMFYUI_REF})..."
+  mkdir -p "${COMFY_DIR%/*}"
+  if [[ -d "${COMFY_DIR}/.git" ]]; then
+    (cd "$COMFY_DIR" && git fetch --tags && git checkout -f "${COMFYUI_REF}" && git pull --ff-only || true)
   else
     git clone https://github.com/comfyanonymous/ComfyUI "$COMFY_DIR"
-    ( cd "$COMFY_DIR"
-      git fetch --tags
-      [[ "${COMFYUI_REF}" == "latest" ]] && COMFYUI_REF="$(git describe --tags "$(git rev-list --tags --max-count=1)")"
-      git checkout -f "${COMFYUI_REF}"
-    )
+    (cd "$COMFY_DIR" && git checkout -f "${COMFYUI_REF}")
   fi
 }
 
-install_python_base() {
+install_python_base(){
   log "Upgrading pip/setuptools/wheel..."
   pipx install --upgrade pip setuptools wheel
-
   log "Installing base Python packages..."
-  pipx install --no-cache-dir "${BASE_PIP_PACKAGES[@]}"
+  pipx install --no-cache-dir ${BASE_PIP_PACKAGES[*]}
 
-  # Prefer contrib build for OpenCV features some nodes require
-  pipx uninstall -y opencv-python opencv-python-headless >/dev/null 2>&1 || true
-  pipx install --no-cache-dir "opencv-contrib-python-headless==4.10.0.84"
+  # prefer contrib build for opencv
+  pipx uninstall -y opencv-python opencv-python-headless || true
+  pipx install --no-cache-dir opencv-contrib-python-headless==4.10.0.84
 
-  # Pre-pin torchvision/torchaudio to match torch in the image
-  if pyx -c 'import torch; print(torch.__version__)' >/dev/null 2>&1; then
-    local tv_url="https://download.pytorch.org/whl/cu121"
-    case "$(pyx - <<'PY'
-import torch, re
-print(re.sub(r'\+.*$','', torch.__version__))
-PY
-)" in
-      2.4.*) pipx install --no-cache-dir --index-url "$tv_url" "torchvision==0.19.1" "torchaudio==2.4.1" || true ;;
-      2.5.*) pipx install --no-cache-dir --index-url "$tv_url" "torchvision==0.20.1" "torchaudio==2.5.1" || true ;;
-      2.6.*) pipx install --no-cache-dir --index-url "$tv_url" "torchvision==0.21.0" "torchaudio==2.6.0" || true ;;
-      *) warn "Unknown torch version; skipping torchvision/torchaudio pre-pin";;
-    esac
-  fi
+  # Choose and install torch plan
+  make_torch_plan
+  install_torch_stack
 
-  # Install ComfyUI exact requirements (frontend pinned for tag)
+  # Install ComfyUI exact requirements (pin with constraints if we set torch)
   if [[ -f "${COMFY_DIR}/requirements.txt" ]]; then
     log "Installing ComfyUI requirements from ${COMFYUI_REF}..."
-    pipx install --no-cache-dir -r "${COMFY_DIR}/requirements.txt"
+    if [[ -f /tmp/torch-constraints.txt ]]; then
+      pipx install --no-cache-dir -r "${COMFY_DIR}/requirements.txt" -c /tmp/torch-constraints.txt
+    else
+      pipx install --no-cache-dir -r "${COMFY_DIR}/requirements.txt"
+    fi
   fi
 }
 
-install_nodes() {
+install_nodes(){
   log "Installing custom nodes..."
   local base="${COMFY_DIR}/custom_nodes"
   mkdir -p "$base"
-
   for repo in "${NODES[@]}"; do
-    local dir="${repo##*/}"
-    local path="$base/$dir"
-    local req="$path/requirements.txt"
-
-    if [[ -d "$path/.git" ]]; then
+    local dir="${repo##*/}"; local path="$base/$dir"; local req="$path/requirements.txt"
+    if [[ -d "$path" ]]; then
       if [[ ${AUTO_UPDATE,,} != "false" ]]; then
-        (cd "$path" && git pull --rebase --autostash || true)
+        log "Updating node: $repo"; (cd "$path" && git pull --rebase --autostash || true)
       else
         log "Node exists, skipping update: $repo"
       fi
     else
-      git clone --recursive "$repo" "$path" || warn "clone failed: $repo"
+      log "Cloning node: $repo"; git clone --recursive "$repo" "$path" || warn "clone failed: $repo"
     fi
-
     if [[ -s "$req" ]]; then
       log "Installing requirements for $dir"
-      pipx install --no-cache-dir -r "$req" || warn "requirements failed for $dir"
+      if [[ -f /tmp/torch-constraints.txt ]]; then
+        pipx install --no-cache-dir -r "$req" -c /tmp/torch-constraints.txt || warn "requirements failed for $dir"
+      else
+        pipx install --no-cache-dir -r "$req" || warn "requirements failed for $dir"
+      fi
     fi
   done
-
-  # Common extras many nodes assume
+  # Common util packages many nodes assume
   pipx install --no-cache-dir ultralytics onnxruntime || true
 }
 
-install_workflows() {
+install_workflows(){
   [[ ${#WORKFLOWS[@]} -eq 0 ]] && return 0
   log "Syncing workflows..."
   for repo in "${WORKFLOWS[@]}"; do
-    local name; name="$(basename "$repo" .git)"
+    local name=$(basename "$repo" .git)
     local temp="/tmp/$name"
     local target="${COMFY_DIR}/user/default/workflows"
-    if [[ -d "$temp/.git" ]]; then
-      (cd "$temp" && git pull --rebase --autostash || true)
-    else
-      git clone "$repo" "$temp" || true
-    fi
+    if [[ -d "$temp/.git" ]]; then (cd "$temp" && git pull --rebase --autostash || true); else git clone "$repo" "$temp" || true; fi
     mkdir -p "$target"
-    [[ -d "$temp/workflows" ]] && cp -rf "$temp/workflows/"* "$target/" || true
+    [[ -d "$temp/workflows" ]] && cp -rf "$temp/workflows"/* "$target/"
   done
 }
 
-write_default_graph() {
+write_default_graph(){
   if [[ -n "$DEFAULT_WORKFLOW" ]]; then
-    log "Writing defaultGraph.js from DEFAULT_WORKFLOW"
+    log "Writing default graph.js from DEFAULT_WORKFLOW"
     local js="${COMFY_DIR}/web/scripts/defaultGraph.js"
-    if curl -fsSL "$DEFAULT_WORKFLOW" -o /tmp/_wf.json; then
-      printf 'export const defaultGraph = %s;\n' "$(cat /tmp/_wf.json)" > "$js"
-    fi
+    curl -fsSL "$DEFAULT_WORKFLOW" -o /tmp/_wf.json && \
+      { echo -n "export const defaultGraph = "; cat /tmp/_wf.json; echo ";" ; } > "$js" || true
   fi
 }
 
-make_model_dirs() {
+make_model_dirs(){
   mkdir -p \
     "${COMFY_DIR}/models/checkpoints" \
     "${COMFY_DIR}/models/ultralytics/bbox" \
     "${COMFY_DIR}/models/ultralytics/segm" \
     "${COMFY_DIR}/models/sams" \
     "${COMFY_DIR}/models/insightface" \
-    "${WORKSPACE%/}/storage/stable_diffusion/models/unet" \
-    "${WORKSPACE%/}/storage/stable_diffusion/models/clip" \
-    "${WORKSPACE%/}/storage/stable_diffusion/models/lora" \
-    "${WORKSPACE%/}/storage/stable_diffusion/models/controlnet" \
-    "${WORKSPACE%/}/storage/stable_diffusion/models/vae" \
-    "${WORKSPACE%/}/storage/stable_diffusion/models/esrgan"
+    "${WORKSPACE}/storage/stable_diffusion/models/unet" \
+    "${WORKSPACE}/storage/stable_diffusion/models/clip" \
+    "${WORKSPACE}/storage/stable_diffusion/models/lora" \
+    "${WORKSPACE}/storage/stable_diffusion/models/controlnet" \
+    "${WORKSPACE}/storage/stable_diffusion/models/vae" \
+    "${WORKSPACE}/storage/stable_diffusion/models/esrgan"
 }
 
-fetch_models() {
-  log "Downloading models (with validation + retries)..."
+fetch_models(){
+  log "Downloading models (with validation)..."
   local d
   for d in "${CHECKPOINT_MODELS[@]}"; do fetch "$d" "${COMFY_DIR}/models/checkpoints/$(basename "$d")" || warn "failed: $d"; done
-  for d in "${UNET_MODELS[@]}"; do fetch "$d" "${WORKSPACE%/}/storage/stable_diffusion/models/unet/$(basename "$d")" || warn "failed: $d"; done
-  for d in "${CLIP_MODELS[@]}"; do fetch "$d" "${WORKSPACE%/}/storage/stable_diffusion/models/clip/$(basename "$d")" || warn "failed: $d"; done
-  for d in "${LORA_MODELS[@]}"; do fetch "$d" "${WORKSPACE%/}/storage/stable_diffusion/models/lora/$(basename "$d")" || warn "failed: $d"; done
-  for d in "${CONTROLNET_MODELS[@]}"; do fetch "$d" "${WORKSPACE%/}/storage/stable_diffusion/models/controlnet/$(basename "$d")" || warn "failed: $d"; done
-  for d in "${VAE_MODELS[@]}"; do fetch "$d" "${WORKSPACE%/}/storage/stable_diffusion/models/vae/$(basename "$d")" || warn "failed: $d"; done
-  for d in "${ESRGAN_MODELS[@]}"; do fetch "$d" "${WORKSPACE%/}/storage/stable_diffusion/models/esrgan/$(basename "$d")" || warn "failed: $d"; done
+  for d in "${UNET_MODELS[@]}"; do fetch "$d" "${WORKSPACE}/storage/stable_diffusion/models/unet/$(basename "$d")" || warn "failed: $d"; done
+  for d in "${CLIP_MODELS[@]}"; do fetch "$d" "${WORKSPACE}/storage/stable_diffusion/models/clip/$(basename "$d")" || warn "failed: $d"; done
+  for d in "${LORA_MODELS[@]}"; do fetch "$d" "${WORKSPACE}/storage/stable_diffusion/models/lora/$(basename "$d")" || warn "failed: $d"; done
+  for d in "${CONTROLNET_MODELS[@]}"; do fetch "$d" "${WORKSPACE}/storage/stable_diffusion/models/controlnet/$(basename "$d")" || warn "failed: $d"; done
+  for d in "${VAE_MODELS[@]}"; do fetch "$d" "${WORKSPACE}/storage/stable_diffusion/models/vae/$(basename "$d")" || warn "failed: $d"; done
+  for d in "${ESRGAN_MODELS[@]}"; do fetch "$d" "${WORKSPACE}/storage/stable_diffusion/models/esrgan/$(basename "$d")" || warn "failed: $d"; done
   for d in "${ULTRALYTICS_BBOX_MODELS[@]}"; do fetch "$d" "${COMFY_DIR}/models/ultralytics/bbox/$(basename "$d")" || warn "failed: $d"; done
   for d in "${ULTRALYTICS_SEGM_MODELS[@]}"; do fetch "$d" "${COMFY_DIR}/models/ultralytics/segm/$(basename "$d")" || warn "failed: $d"; done
   for d in "${SAM_MODELS[@]}"; do fetch "$d" "${COMFY_DIR}/models/sams/$(basename "$d")" || warn "failed: $d"; done
   for d in "${INSIGHTFACE_MODELS[@]}"; do fetch "$d" "${COMFY_DIR}/models/insightface/$(basename "$d")" || warn "failed: $d"; done
 }
 
-post_checks() {
-  log "Quick sanity checks..."
-  pyx - <<'PY' || true
+post_checks(){
+  log "Running quick sanity checks..."
+  # Core imports: ensure PYTHONPATH or cwd is repo
+  ( cd "$COMFY_DIR" && PYTHONPATH="$COMFY_DIR:$PYTHONPATH" pyx - <<'PY'
 try:
     import comfy
-    import comfy_extras.nodes_audio  # common extra
-    print("ComfyUI core imports OK")
+    import comfy_extras.nodes_audio as _
+    print("ComfyUI core & audio extras import OK")
 except Exception as e:
-    print("[SANITY] Core import error:", e)
+    print("[SANITY] Import error:", e)
 PY
+  )
+  # Basic module presence for nodes
+  ( cd "$COMFY_DIR" && PYTHONPATH="$COMFY_DIR:$PYTHONPATH" pyx - <<'PY'
+import importlib
+mods = ['nodes','CUSTOM_NODES']
+for m in mods:
+    try:
+        importlib.import_module(m)
+        print("OK:", m)
+    except Exception as e:
+        print("MISS:", m, e)
+PY
+  )
 }
 
-main() {
+main(){
   prepare_env
   install_apt
   clone_comfyui
