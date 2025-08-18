@@ -1,43 +1,22 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# AI-Dock provisioning script for ComfyUI (idempotent, first-boot clean install)
+# - Uses AI-Dock conventions: provisioning_* functions + provisioning_start
+# - Installs custom nodes + their requirements (no pip-installing nodes themselves)
+# - Downloads models with HF/Civitai tokens if provided
+# - Writes defaultGraph.js from DEFAULT_WORKFLOW
+# - Passes a correct ComfyUI "import comfy" sanity check (adds COMFY_DIR to sys.path)
+
 set -Eeuo pipefail
 
-# ========== LOGGING / TRAPS ==========
-log()  { printf "\e[1;32m[SETUP]\e[0m %s\n" "$*"; }
-warn() { printf "\e[1;33m[WARN ]\e[0m %s\n" "$*"; }
-err()  { printf "\e[1;31m[ERROR]\e[0m %s\n" "$*"; }
-trap 'err "Failed at line $LINENO: $(sed -n "${LINENO}p" "$0")"' ERR
-
-# ========== TUNABLES ==========
-: "${COMFYUI_REF:=v0.3.50}"         # Tag/branch/commit; leave empty to follow image default
-: "${AUTO_UPDATE:=true}"
+# ======== Tunables (can be overridden by env) ========
 : "${WORKSPACE:=/workspace}"
-: "${COMFY_DIR:=}"
+: "${AUTO_UPDATE:=true}"
+: "${COMFYUI_REF:=v0.3.50}"
+: "${DEFAULT_WORKFLOW:=https://raw.githubusercontent.com/kingaigfcash/aigfcash-runpod-template/refs/heads/main/workflows/default_workflow.json}"
 : "${HF_TOKEN:=}"
 : "${CIVITAI_TOKEN:=}"
-: "${DEFAULT_WORKFLOW:=https://raw.githubusercontent.com/kingaigfcash/aigfcash-runpod-template/refs/heads/main/workflows/default_workflow.json}"
 
-# Normalize paths
-WORKSPACE="${WORKSPACE%/}"
-if [[ -z "${COMFY_DIR}" ]]; then COMFY_DIR="${WORKSPACE}/ComfyUI"; fi
-
-# Core apt packages (best-effort)
-APT_PACKAGES=(
-  git git-lfs curl ca-certificates build-essential pkg-config
-  python3-dev python3-pip python3-venv
-  libgl1 libglib2.0-0 ffmpeg libsm6 libxext6
-)
-
-# Lean Python base
-BASE_PIP_PACKAGES=(
-  pip setuptools wheel
-  "huggingface_hub==0.25.2"
-  tqdm pyyaml psutil colorama imageio imageio-ffmpeg matplotlib
-  av piexif pydantic-settings uv einops scipy "kornia>=0.7.1"
-  "safetensors>=0.4.2" "transformers>=4.28.1" "tokenizers>=0.13.3" sentencepiece
-  timm albumentations shapely soundfile pydub
-)
-
-# Custom nodes to clone/update
+# Nodes (curated; skips archived/obsolete)
 NODES=(
   https://github.com/ltdrdata/ComfyUI-Manager
   https://github.com/cubiq/ComfyUI_essentials
@@ -82,7 +61,7 @@ NODES=(
   https://github.com/WASasquatch/was-node-suite-comfyui
 )
 
-# Models (optional—enable what you need)
+# Models to prefetch
 CHECKPOINT_MODELS=(
   https://huggingface.co/kingcashflow/modelcheckpoints/resolve/main/AIIM_Realism.safetensors
   https://huggingface.co/kingcashflow/modelcheckpoints/resolve/main/AIIM_Realism_FAST.safetensors
@@ -90,8 +69,8 @@ CHECKPOINT_MODELS=(
   https://huggingface.co/AiWise/epiCRealism-XL-vXI-aBEAST/resolve/5c3950c035ce565d0358b76805de5ef2c74be919/epicrealismXL_vxiAbeast.safetensors
 )
 UNET_MODELS=()
-VAE_MODELS=(https://huggingface.co/stabilityai/sdxl-vae/resolve/main/diffusion_pytorch_model.safetensors)
 CLIP_MODELS=()
+VAE_MODELS=(https://huggingface.co/stabilityai/sdxl-vae/resolve/main/diffusion_pytorch_model.safetensors)
 LORA_MODELS=(
   https://huggingface.co/kingcashflow/LoRas/resolve/main/depth_of_field_slider_v1.safetensors
   https://huggingface.co/kingcashflow/LoRas/resolve/main/zoom_slider_v1.safetensors
@@ -114,211 +93,134 @@ ULTRALYTICS_BBOX_MODELS=(
 )
 ULTRALYTICS_SEGM_MODELS=(https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt)
 SAM_MODELS=(https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth)
-WORKFLOWS=(https://github.com/kingaigfcash/aigfcash-runpod-template.git)
 
-# ========== HELPERS ==========
-sudo_if() { if command -v sudo >/dev/null 2>&1; then sudo "$@"; else "$@"; fi; }
-pipx() { if [[ -n "${COMFYUI_VENV_PIP:-}" && -x "${COMFYUI_VENV_PIP}" ]]; then "${COMFYUI_VENV_PIP}" "$@"; else pip "$@"; fi; }
-pyx()  { if [[ -n "${COMFYUI_VENV_PYTHON:-}" && -x "${COMFYUI_VENV_PYTHON}" ]]; then "${COMFYUI_VENV_PYTHON}" "$@"; else python3 "$@"; fi; }
+# ======== Helpers ========
+log()  { printf "\e[1;32m[PROV]\e[0m %s\n" "$*"; }
+warn() { printf "\e[1;33m[WARN]\e[0m %s\n" "$*"; }
+err()  { printf "\e[1;31m[ERR ]\e[0m %s\n" "$*"; }
 
-have_hf_token() { [[ -n "${HF_TOKEN:-}" ]] && curl -fsSL -H "Authorization: Bearer ${HF_TOKEN}" https://huggingface.co/api/whoami-v2 >/dev/null; }
-
-# robust downloader with auth + 3 retries + size check
-fetch() {
-  local url="$1" out="$2"
-  shift 2 || true
-  local auth=()
-  if [[ "$url" =~ ^https://huggingface\.co ]]; then [[ -n "${HF_TOKEN:-}" ]] && auth=(-H "Authorization: Bearer ${HF_TOKEN}"); fi
-  if [[ "$url" =~ ^https://civitai\.com ]];   then [[ -n "${CIVITAI_TOKEN:-}" ]] && auth=(-H "Authorization: Bearer ${CIVITAI_TOKEN}"); fi
-  mkdir -p "$(dirname "$out")"
-  for i in 1 2 3; do
-    curl -fL --retry 5 --retry-delay 2 "${auth[@]}" -o "$out.partial" "$url" && mv -f "$out.partial" "$out" || true
-    if [[ -s "$out" && $(stat -c%s "$out") -ge 262144 ]]; then echo OK; return 0; fi
-    warn "download retry $i for $url"; sleep 2
-  done
-  return 1
-}
-
-# ========== STEPS ==========
-prepare_env() {
-  log "Preparing AI-Dock environment + venv..."
-  [[ -f /opt/ai-dock/etc/environment.sh ]] && source /opt/ai-dock/etc/environment.sh
-  [[ -f /opt/ai-dock/bin/venv-set.sh ]] && source /opt/ai-dock/bin/venv-set.sh comfyui
-  # Ensure COMFY_DIR exists (AI-Dock moves it to /workspace on first boot)
-  mkdir -p "${COMFY_DIR%/*}"
-}
-
-install_apt() {
-  log "Installing apt packages (best-effort)..."
-  sudo_if apt-get update -y || warn "apt update failed (non-root?). Continuing..."
-  sudo_if apt-get install -y --no-install-recommends "${APT_PACKAGES[@]}" || warn "apt install skipped/failed; base image likely has deps."
-}
-
-sync_comfyui() {
-  log "Syncing ComfyUI repo..."
-  if [[ -d "${COMFY_DIR}/.git" ]]; then
-    (cd "$COMFY_DIR" && git fetch --tags --force)
-    if [[ -n "${COMFYUI_REF}" ]]; then
-      (cd "$COMFY_DIR" && git checkout -f "${COMFYUI_REF}" && git reset --hard && git clean -fd) || warn "checkout ${COMFYUI_REF} failed"
-    fi
+# Download with auth + sanity size check
+provisioning_download() {
+  local url="$1" outdir="$2" dots="${3:-4M}"
+  local args=(-qnc --content-disposition -e "dotbytes=${dots}" -P "$outdir")
+  if [[ -n "$HF_TOKEN"     && "$url" =~ ^https://([a-zA-Z0-9_-]+\.)?huggingface\.co(/|$|\?) ]]; then
+    wget --header="Authorization: Bearer $HF_TOKEN" "${args[@]}" "$url"
+  elif [[ -n "$CIVITAI_TOKEN" && "$url" =~ ^https://([a-zA-Z0-9_-]+\.)?civitai\.com(/|$|\?) ]]; then
+    wget --header="Authorization: Bearer $CIVITAI_TOKEN" "${args[@]}" "$url"
   else
-    git clone https://github.com/comfyanonymous/ComfyUI "$COMFY_DIR"
-    [[ -n "${COMFYUI_REF}" ]] && (cd "$COMFY_DIR" && git checkout -f "${COMFYUI_REF}") || true
+    wget "${args[@]}" "$url"
   fi
 }
 
-install_python_base() {
-  log "Upgrading pip/setuptools/wheel..."
-  pipx install --upgrade pip setuptools wheel
+# ======== AI-Dock contract: provisioning_* entrypoint ========
+provisioning_start() {
+  # Standard AI-Dock environment
+  source /opt/ai-dock/etc/environment.sh
+  source /opt/ai-dock/bin/venv-set.sh comfyui  # sets COMFYUI_VENV_PIP/COMFYUI_VENV_PYTHON
+  export COMFY_DIR="${WORKSPACE%/}/ComfyUI"
+  log "Workspace: ${WORKSPACE%/} | COMFY_DIR: ${COMFY_DIR}"
 
-  log "Installing base Python packages..."
-  pipx install --no-cache-dir ${BASE_PIP_PACKAGES[*]}
-
-  # Prefer opencv-contrib build
-  pipx uninstall -y opencv-python opencv-python-headless || true
-  pipx install --no-cache-dir opencv-contrib-python-headless==4.10.0.84
-
-  # Pre-pin torchvision/torchaudio to match torch in container (CUDA 12.1 wheels index)
-  local torch_idx="https://download.pytorch.org/whl/cu121"
-  if pyx - <<'PY' >/dev/null 2>&1; then
-import torch, sys
-print(torch.__version__)
-PY
-  then
-    case "$(pyx - <<'PY'
-import torch; print(torch.__version__.split('+')[0])
-PY
-)" in
-      2.4.*) pipx install --no-cache-dir --index-url "$torch_idx" torchvision==0.19.1 torchaudio==2.4.1;;
-      2.5.*) pipx install --no-cache-dir --index-url "$torch_idx" torchvision==0.20.1 torchaudio==2.5.1;;
-      2.6.*) pipx install --no-cache-dir --index-url "$torch_idx" torchvision==0.21.0 torchaudio==2.6.0;;
-      *) warn "Unknown torch version; skipping torchvision/torchaudio pre-pin";;
-    esac
+  # (Optional) Ensure ComfyUI is on the requested tag; preflight usually does this already.
+  if [[ -d "$COMFY_DIR/.git" ]]; then
+    (cd "$COMFY_DIR" && git fetch --tags && git checkout -f "$COMFYUI_REF" || true)
   fi
 
-  if [[ -f "${COMFY_DIR}/requirements.txt" ]]; then
-    log "Installing ComfyUI requirements for ${COMFYUI_REF:-image default}..."
-    pipx install --no-cache-dir -r "${COMFY_DIR}/requirements.txt"
-  fi
+  install_python_extras
+  install_custom_nodes
+  write_default_graph
+  make_model_dirs
+  prefetch_models
+  sanity_check
+
+  log "Provisioning complete: ComfyUI will start now."
 }
 
-install_nodes() {
-  log "Installing custom nodes..."
-  local base="${COMFY_DIR}/custom_nodes"
+install_python_extras() {
+  # Keep Torch stack from the image; only add safe extras many nodes assume.
+  "$COMFYUI_VENV_PIP" install --no-cache-dir \
+    opencv-contrib-python-headless==4.10.0.84 \
+    ultralytics onnxruntime \
+    tqdm pyyaml psutil colorama imageio imageio-ffmpeg matplotlib \
+    av piexif pydantic-settings uv einops scipy "kornia>=0.7.1" \
+    "safetensors>=0.4.2" "transformers>=4.28.1" "tokenizers>=0.13.3" sentencepiece \
+    timm albumentations shapely soundfile pydub || warn "extras install had non-fatal issues"
+}
+
+install_custom_nodes() {
+  local base="$COMFY_DIR/custom_nodes"
   mkdir -p "$base"
   for repo in "${NODES[@]}"; do
     local dir="${repo##*/}"
     local path="$base/$dir"
     local req="$path/requirements.txt"
-    if [[ -d "$path/.git" ]]; then
-      if [[ ${AUTO_UPDATE,,} != "false" ]]; then
+    if [[ -d "$path" ]]; then
+      if [[ ${AUTO_UPDATE,,} == "true" ]]; then
         log "Updating node: $repo"
         (cd "$path" && git pull --rebase --autostash || true)
       else
-        log "Node exists, skipping update: $repo"
+        log "Node exists, skip update: $repo"
       fi
     else
       log "Cloning node: $repo"
       git clone --recursive "$repo" "$path" || warn "clone failed: $repo"
     fi
     if [[ -s "$req" ]]; then
-      log "Installing requirements for ${dir}"
-      pipx install --no-cache-dir -r "$req" || warn "requirements failed for $dir"
+      log "Installing requirements for $dir"
+      "$COMFYUI_VENV_PIP" install --no-cache-dir -r "$req" || warn "requirements failed for $dir"
     fi
-  done
-  pipx install --no-cache-dir ultralytics onnxruntime
-}
-
-install_workflows() {
-  [[ ${#WORKFLOWS[@]} -eq 0 ]] && return 0
-  log "Syncing workflows..."
-  for repo in "${WORKFLOWS[@]}"; do
-    local name=$(basename "$repo" .git)
-    local temp="/tmp/$name"
-    local target="${COMFY_DIR}/user/default/workflows"
-    if [[ -d "$temp/.git" ]]; then (cd "$temp" && git pull --rebase --autostash || true); else git clone "$repo" "$temp" || true; fi
-    mkdir -p "$target"
-    [[ -d "$temp/workflows" ]] && cp -rf "$temp/workflows"/* "$target/" || true
   done
 }
 
 write_default_graph() {
   if [[ -n "$DEFAULT_WORKFLOW" ]]; then
-    log "Writing defaultGraph.js"
-    local js="${COMFY_DIR}/web/scripts/defaultGraph.js"
-    if curl -fsSL "$DEFAULT_WORKFLOW" -o /tmp/_wf.json; then
-      printf 'export const defaultGraph = %s;\n' "$(cat /tmp/_wf.json)" > "$js" || true
-    fi
+    local js="$COMFY_DIR/web/scripts/defaultGraph.js"
+    log "Setting default workflow graph"
+    curl -fsSL "$DEFAULT_WORKFLOW" -o /tmp/_wf.json \
+      && printf 'export const defaultGraph = %s;\n' "$(cat /tmp/_wf.json)" > "$js" \
+      || warn "could not write defaultGraph.js"
   fi
 }
 
 make_model_dirs() {
   mkdir -p \
-    "${COMFY_DIR}/models/checkpoints" \
-    "${COMFY_DIR}/models/ultralytics/bbox" \
-    "${COMFY_DIR}/models/ultralytics/segm" \
-    "${COMFY_DIR}/models/sams" \
-    "${COMFY_DIR}/models/insightface" \
-    "${WORKSPACE}/storage/stable_diffusion/models/unet" \
-    "${WORKSPACE}/storage/stable_diffusion/models/clip" \
-    "${WORKSPACE}/storage/stable_diffusion/models/lora" \
-    "${WORKSPACE}/storage/stable_diffusion/models/controlnet" \
-    "${WORKSPACE}/storage/stable_diffusion/models/vae" \
-    "${WORKSPACE}/storage/stable_diffusion/models/esrgan"
+    "$COMFY_DIR/models/checkpoints" \
+    "$COMFY_DIR/models/ultralytics/bbox" \
+    "$COMFY_DIR/models/ultralytics/segm" \
+    "$COMFY_DIR/models/sams" \
+    "$COMFY_DIR/models/insightface" \
+    "${WORKSPACE%/}/storage/stable_diffusion/models/unet" \
+    "${WORKSPACE%/}/storage/stable_diffusion/models/clip" \
+    "${WORKSPACE%/}/storage/stable_diffusion/models/lora" \
+    "${WORKSPACE%/}/storage/stable_diffusion/models/controlnet" \
+    "${WORKSPACE%/}/storage/stable_diffusion/models/vae" \
+    "${WORKSPACE%/}/storage/stable_diffusion/models/esrgan"
 }
 
-fetch_models() {
-  log "Downloading models..."
-  local d
-  for d in "${CHECKPOINT_MODELS[@]}";   do fetch "$d" "${COMFY_DIR}/models/checkpoints/$(basename "$d")" || warn "failed: $d"; done
-  for d in "${UNET_MODELS[@]}";        do fetch "$d" "${WORKSPACE}/storage/stable_diffusion/models/unet/$(basename "$d")" || warn "failed: $d"; done
-  for d in "${CLIP_MODELS[@]}";        do fetch "$d" "${WORKSPACE}/storage/stable_diffusion/models/clip/$(basename "$d")" || warn "failed: $d"; done
-  for d in "${LORA_MODELS[@]}";        do fetch "$d" "${WORKSPACE}/storage/stable_diffusion/models/lora/$(basename "$d")" || warn "failed: $d"; done
-  for d in "${CONTROLNET_MODELS[@]}";  do fetch "$d" "${WORKSPACE}/storage/stable_diffusion/models/controlnet/$(basename "$d")" || warn "failed: $d"; done
-  for d in "${VAE_MODELS[@]}";         do fetch "$d" "${WORKSPACE}/storage/stable_diffusion/models/vae/$(basename "$d")" || warn "failed: $d"; done
-  for d in "${ESRGAN_MODELS[@]}";      do fetch "$d" "${WORKSPACE}/storage/stable_diffusion/models/esrgan/$(basename "$d")" || warn "failed: $d"; done
-  for d in "${ULTRALYTICS_BBOX_MODELS[@]}"; do fetch "$d" "${COMFY_DIR}/models/ultralytics/bbox/$(basename "$d")" || warn "failed: $d"; done
-  for d in "${ULTRALYTICS_SEGM_MODELS[@]}"; do fetch "$d" "${COMFY_DIR}/models/ultralytics/segm/$(basename "$d")" || warn "failed: $d"; done
-  for d in "${SAM_MODELS[@]}";         do fetch "$d" "${COMFY_DIR}/models/sams/$(basename "$d")" || warn "failed: $d"; done
-  for d in "${INSIGHTFACE_MODELS[@]}"; do fetch "$d" "${COMFY_DIR}/models/insightface/$(basename "$d")" || warn "failed: $d"; done
+prefetch_models() {
+  log "Downloading models… (tokened endpoints supported)"
+  for u in "${CHECKPOINT_MODELS[@]}"; do provisioning_download "$u" "$COMFY_DIR/models/checkpoints" ; done
+  for u in "${ULTRALYTICS_BBOX_MODELS[@]}"; do provisioning_download "$u" "$COMFY_DIR/models/ultralytics/bbox" ; done
+  for u in "${ULTRALYTICS_SEGM_MODELS[@]}"; do provisioning_download "$u" "$COMFY_DIR/models/ultralytics/segm" ; done
+  for u in "${SAM_MODELS[@]}"; do provisioning_download "$u" "$COMFY_DIR/models/sams" ; done
+  for u in "${INSIGHTFACE_MODELS[@]}"; do provisioning_download "$u" "$COMFY_DIR/models/insightface" ; done
+  for u in "${UNET_MODELS[@]}";     do provisioning_download "$u" "${WORKSPACE%/}/storage/stable_diffusion/models/unet" ; done
+  for u in "${CLIP_MODELS[@]}";     do provisioning_download "$u" "${WORKSPACE%/}/storage/stable_diffusion/models/clip" ; done
+  for u in "${LORA_MODELS[@]}";     do provisioning_download "$u" "${WORKSPACE%/}/storage/stable_diffusion/models/lora" ; done
+  for u in "${CONTROLNET_MODELS[@]}"; do provisioning_download "$u" "${WORKSPACE%/}/storage/stable_diffusion/models/controlnet" ; done
+  for u in "${VAE_MODELS[@]}";      do provisioning_download "$u" "${WORKSPACE%/}/storage/stable_diffusion/models/vae" ; done
+  for u in "${ESRGAN_MODELS[@]}";   do provisioning_download "$u" "${WORKSPACE%/}/storage/stable_diffusion/models/esrgan" ; done
 }
 
-post_checks() {
-  log "Running sanity checks from inside \$COMFY_DIR..."
-  (
-    cd "$COMFY_DIR"
-    PYTHONPATH="$COMFY_DIR:${PYTHONPATH:-}" pyx - <<'PY'
-import importlib
-try:
-    import comfy, comfy_extras.nodes_audio  # ensure core packages load
-    print("ComfyUI core imports OK")
-except Exception as e:
-    print("[SANITY] Core import error:", e)
-mods = ['nodes','CUSTOM_NODES']
-for m in mods:
-    try:
-        importlib.import_module(m)
-        print("OK:", m)
-    except Exception as e:
-        print("MISS:", m, e)
+sanity_check() {
+  log "Sanity check: import comfy from repo path"
+  "$COMFYUI_VENV_PYTHON" - <<'PY'
+import os, sys
+COMFY_DIR = os.environ.get("COMFY_DIR", "/workspace/ComfyUI")
+sys.path.insert(0, COMFY_DIR)
+import comfy  # should succeed because we added the repo root
+print("Comfy import OK from", COMFY_DIR)
 PY
-  ) || warn "sanity checks failed"
 }
 
-main() {
-  log "=== Provisioning start ==="
-  prepare_env
-  install_apt
-  sync_comfyui
-  install_python_base
-  install_nodes
-  install_workflows
-  write_default_graph
-  make_model_dirs
-  fetch_models
-  post_checks
-  log "=== Provisioning complete — ComfyUI will start (or is already running) ==="
-  touch /opt/ai-dock/etc/custom-provisioning.ok || true
-}
-
-main "$@"
+# entry
+provisioning_start
