@@ -207,7 +207,7 @@ install_python_base() {
   pipx uninstall -y opencv-python opencv-python-headless >/dev/null 2>&1 || true
   pipx install --no-cache-dir "opencv-contrib-python-headless==4.10.0.84"
 
-  # === CHANGED: pre-pin torchvision/torchaudio to match *detected* torch & CUDA channel ===
+  # === MATCH Torch family to the Torch that's already present (and CUDA/CPU channel) ===
   if pyx -c 'import torch; print(torch.__version__)' >/dev/null 2>&1; then
     local TORCH_BASE_VER CUDA_CHAN TV TA tv_url
     TORCH_BASE_VER="$(pyx - <<'PY'
@@ -221,21 +221,21 @@ print(('cu' + torch.version.cuda.replace('.','')) if torch.version.cuda else 'cp
 PY
 )"
     case "$CUDA_CHAN" in
-      cpu)   tv_url="https://download.pytorch.org/whl/cpu" ;;
-      *)     tv_url="https://download.pytorch.org/whl/${CUDA_CHAN}" ;;
+      cpu) tv_url="https://download.pytorch.org/whl/cpu" ;;
+      *)   tv_url="https://download.pytorch.org/whl/${CUDA_CHAN}" ;;
     esac
     case "$TORCH_BASE_VER" in
       2.4.*) TV="0.19.1"; TA="2.4.1" ;;
       2.5.*) TV="0.20.1"; TA="2.5.1" ;;
       2.6.*) TV="0.21.0"; TA="2.6.0" ;;
-      *)     TV=""; TA=""; warn "Unknown torch $TORCH_BASE_VER; skipping torchvision/torchaudio pre-pin" ;;
+      *)     TV=""; TA=""; warn "Unknown torch $TORCH_BASE_VER; skipping tv/ta pre-pin" ;;
     esac
     if [[ -n "$TV" && -n "$TA" ]]; then
       pipx uninstall -y torchvision torchaudio >/dev/null 2>&1 || true
       pipx install --no-cache-dir --index-url "$tv_url" "torchvision==${TV}" "torchaudio==${TA}" --no-deps || true
     fi
   fi
-  # (Why: TorchAudio and Torch must be same release; mixing breaks. Official guidance + common error.)  # :contentReference[oaicite:2]{index=2}
+  # (TorchAudio must match Torch release; mixing causes binary import errors.)  # refs: docs :contentReference[oaicite:3]{index=3}
 
   # Install ComfyUI exact requirements (frontend pinned for tag)
   if [[ -f "${COMFY_DIR}/requirements.txt" ]]; then
@@ -265,7 +265,7 @@ install_nodes() {
     fi
 
     if [[ -s "$req" ]]; then
-      # === CHANGED: lock torch/vision/audio during node installs (avoid ABI mismatches) ===
+      # === Lock Torch during node installs so nothing downgrades/upgrades it ===
       local TORCH_BASE_VER CUDA_CHAN CONSTRAINTS TV TA tv_url
       TORCH_BASE_VER="$(pyx - <<'PY'
 import torch, re
@@ -278,8 +278,8 @@ print(('cu' + torch.version.cuda.replace('.','')) if torch.version.cuda else 'cp
 PY
 )"
       case "$CUDA_CHAN" in
-        cpu)   tv_url="https://download.pytorch.org/whl/cpu" ;;
-        *)     tv_url="https://download.pytorch.org/whl/${CUDA_CHAN}" ;;
+        cpu) tv_url="https://download.pytorch.org/whl/cpu" ;;
+        *)   tv_url="https://download.pytorch.org/whl/${CUDA_CHAN}" ;;
       esac
       case "$TORCH_BASE_VER" in
         2.4.*) TV="0.19.1"; TA="2.4.1" ;;
@@ -293,17 +293,43 @@ PY
       [[ -n "$TV" ]] && echo "torchvision==${TV}" >> "$CONSTRAINTS"
       [[ -n "$TA" ]] && echo "torchaudio==${TA}" >> "$CONSTRAINTS"
 
-      log "Installing requirements for $dir (with Torch constraints)"
+      log "Installing requirements for $dir (Torch constrained)"
       pipx install --no-cache-dir -r "$req" --constraint "$CONSTRAINTS" \
         --extra-index-url "$tv_url" || warn "requirements failed for $dir"
-      # (Why: use PyTorch wheel index per CUDA channel, keep Torch* aligned.)  # :contentReference[oaicite:3]{index=3}
-    else
-      log "No requirements.txt for $dir"
     fi
   done
 
   # Common extras many nodes assume
   pipx install --no-cache-dir ultralytics onnxruntime || true
+
+  # === Fix Impact-Pack vs LayerStyle-Advance: SAM2 namespace collision, and ensure sam2 is installed ===
+  fix_sam2_namespace_and_package || true
+}
+
+fix_sam2_namespace_and_package() {
+  local lsa_py="${COMFY_DIR}/custom_nodes/ComfyUI_LayerStyle_Advance/py"
+  local old="${lsa_py}/sam2"
+  local neu="${lsa_py}/sam2_lsa"
+
+  # If LayerStyle-Advance ships a 'py/sam2', rename it so it doesn't shadow PyPI 'sam2'
+  if [[ -d "$old" ]]; then
+    log "Patching LayerStyle-Advance (sam2 -> sam2_lsa) to avoid SAM2 import conflicts..."
+    mv "$old" "$neu" || return 0
+    touch "${lsa_py}/__init__.py" "${neu}/__init__.py" || true
+    if command -v sed >/dev/null 2>&1; then
+      grep -RIl --include="*.py" -e '\.\.sam2\.' -e '\bfrom sam2\b' -e '\bimport sam2\b' "$lsa_py" | while read -r f; do
+        sed -r -i 's/from \.\.sam2\./from ..sam2_lsa./g' "$f"
+        sed -r -i 's/\bfrom sam2\b/from sam2_lsa/g' "$f"
+        sed -r -i 's/\bimport sam2\b/import sam2_lsa/g' "$f"
+      done
+    fi
+  fi
+
+  # Install official SAM 2 package for Impact-Pack
+  # (the package name is 'sam2' on PyPI)
+  pipx install --no-cache-dir "sam2" || true
+  # refs: PyPI 'sam2' and Impact-Pack docs mentioning SAM2 usage
+  # :contentReference[oaicite:4]{index=4}
 }
 
 install_workflows() {
@@ -313,7 +339,7 @@ install_workflows() {
     local name; name="$(basename "$repo" .git)"
     local temp="/tmp/$name"
     local target="${COMFY_DIR}/user/default/workflows"
-    if [[ -d "$temp/.git" ]] && [[ -d "$target" ]]; then
+    if [[ -d "$temp/.git" ]]; then
       (cd "$temp" && git pull --rebase --autostash || true)
     else
       git clone "$repo" "$temp" || true
