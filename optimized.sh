@@ -111,13 +111,11 @@ ULTRALYTICS_BBOX_MODELS=(
 )
 ULTRALYTICS_SEGM_MODELS=( https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt )
 SAM_MODELS=( https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth )
-
 WORKFLOWS=( https://github.com/kingaigfcash/aigfcash-runpod-template.git )
 
 log()  { printf "\e[1;32m[SETUP]\e[0m %s\n" "$*"; }
 warn() { printf "\e[1;33m[WARN ]\e[0m %s\n" "$*"; }
 err()  { printf "\e[1;31m[ERROR]\e[0m %s\n" "$*"; }
-
 sudo_if() { if command -v sudo >/dev/null 2>&1; then sudo "$@"; else "$@"; fi; }
 
 # Prefer AI-Dock's comfyui venv if present
@@ -136,12 +134,10 @@ pyx() {
   fi
 }
 
-# Auth check for HF
 have_hf_token() {
   [[ -n "${HF_TOKEN}" ]] && curl -fsSL -H "Authorization: Bearer ${HF_TOKEN}" https://huggingface.co/api/whoami-v2 >/dev/null
 }
 
-# Robust downloader with minimal corruption guard
 fetch() {
   local url="$1" out="$2"
   shift 2 || true
@@ -151,11 +147,8 @@ fetch() {
   mkdir -p "$(dirname "$out")"
   for i in 1 2 3; do
     curl -fL --retry 5 --retry-delay 2 "${auth[@]}" -o "$out.partial" "$url" && mv -f "$out.partial" "$out" || true
-    if [[ -s "$out" && $(stat -c%s "$out") -ge 262144 ]]; then
-      echo OK; return 0
-    fi
-    warn "download retry $i: $url"
-    sleep 2
+    if [[ -s "$out" && $(stat -c%s "$out") -ge 262144 ]]; then echo OK; return 0; fi
+    warn "download retry $i: $url"; sleep 2
   done
   return 1
 }
@@ -183,7 +176,6 @@ clone_comfyui() {
         COMFYUI_REF="$(git describe --tags "$(git rev-list --tags --max-count=1)")"
       fi
       git checkout -f "${COMFYUI_REF}"
-      # No plain 'git pull' on detached HEAD; update only if on a branch
       if git rev-parse --abbrev-ref HEAD | grep -vq '^HEAD$'; then git pull --ff-only || true; fi
     )
   else
@@ -203,11 +195,9 @@ install_python_base() {
   log "Installing base Python packages..."
   pipx install --no-cache-dir "${BASE_PIP_PACKAGES[@]}"
 
-  # Prefer contrib build for OpenCV features some nodes require
   pipx uninstall -y opencv-python opencv-python-headless >/dev/null 2>&1 || true
   pipx install --no-cache-dir "opencv-contrib-python-headless==4.10.0.84"
 
-  # Pre-pin torchvision/torchaudio to match torch in the image
   if pyx -c 'import torch; print(torch.__version__)' >/dev/null 2>&1; then
     local tv_url="https://download.pytorch.org/whl/cu121"
     case "$(pyx - <<'PY'
@@ -222,7 +212,6 @@ PY
     esac
   fi
 
-  # Install ComfyUI exact requirements (frontend pinned for tag)
   if [[ -f "${COMFY_DIR}/requirements.txt" ]]; then
     log "Installing ComfyUI requirements from ${COMFYUI_REF}..."
     pipx install --no-cache-dir -r "${COMFY_DIR}/requirements.txt"
@@ -255,23 +244,32 @@ install_nodes() {
     fi
   done
 
-  # Common extras many nodes assume
   pipx install --no-cache-dir ultralytics onnxruntime || true
 }
 
-# === Impact Pack SAM2 fix (no other changes to your setup) ===
+# --- Install extra Python packages requested (BEFORE ComfyUI starts) ---
+install_requested_packages() {
+  log "Installing requested Python packages..."
+  # Install diffusers at the requested minimum version (no other changes)
+  pipx install --no-cache-dir "diffusers>=0.28.0" || true
+  # (Standard install method is pip; version spec is supported.)  # docs: HF Diffusers
+}
+
+# === Impact Pack SAM2 fix: provide real SAM2 and run its installer ===
 finalize_impact_pack() {
   local ip="${COMFY_DIR}/custom_nodes/ComfyUI-Impact-Pack"
   if [[ -d "$ip" ]]; then
-    log "Installing SAM2 (no-deps, pinned) to satisfy Impact Pack without touching Torch..."
-    # Commit matches what ComfyUI-Manager used in your logs; --no-deps prevents Torch upgrades.
-    pipx install --no-cache-dir --no-deps "git+https://github.com/facebookresearch/sam2@2b90b9f5ceec907a1c18123530e92e794ad901a4" || warn "SAM2 no-deps install skipped"
+    log "Installing SAM2 (no-deps) to satisfy Impact Pack without changing Torch..."
+    pipx install --no-cache-dir --no-deps \
+      "git+https://github.com/facebookresearch/sam2@2b90b9f5ceec907a1c18123530e92e794ad901a4#egg=sam-2" \
+      || warn "SAM2 no-deps install skipped"
 
-    # Run Impact Pack installer (same as the Manager 'Try to Fix' button)
-    if [[ -f "$ip/install.py" ]]; then
-      log "Running Impact Pack install.py"
-      ( cd "$ip" && pyx install.py ) || warn "Impact Pack install.py reported an issue"
-    fi
+    # Avoid vendored sam2 shadowing (if present)
+    local lsa="${COMFY_DIR}/custom_nodes/ComfyUI_LayerStyle_Advance/py/sam2"
+    [[ -d "$lsa" ]] && mv -f "$lsa" "${lsa}.disabled" || true
+
+    # Run Impact Pack's installer (same as Manager 'Try to Fix')
+    [[ -f "$ip/install.py" ]] && ( cd "$ip" && pyx install.py ) || true
   fi
 }
 
@@ -345,18 +343,29 @@ except Exception as e:
 PY
 }
 
+maybe_restart_comfyui() {
+  if command -v supervisorctl >/dev/null 2>&1; then
+    log "Restarting ComfyUI via supervisord..."
+    supervisorctl restart comfyui || supervisorctl start comfyui || true
+  else
+    warn "supervisorctl not found; ComfyUI may be managed elsewhere."
+  fi
+}
+
 main() {
   prepare_env
   install_apt
   clone_comfyui
   install_python_base
   install_nodes
-  finalize_impact_pack       # <-- ONLY added step
+  install_requested_packages    # ← installs diffusers>=0.28.0 before ComfyUI starts
+  finalize_impact_pack          # ← Impact Pack SAM2 fix (safe for other nodes)
   install_workflows
   write_default_graph
   make_model_dirs
   fetch_models
   post_checks
+  maybe_restart_comfyui         # ← start/restart ComfyUI
   log "Provisioning complete."
 }
 
