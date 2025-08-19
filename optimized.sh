@@ -1,19 +1,24 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+
+# === Trap for better error messages ===
 trap 'code=$?; echo -e "\e[1;31m[ERROR]\e[0m ${BASH_SOURCE[0]}:${LINENO} exit $code"; exit $code' ERR
 
 # ---------------------------
 # AIGFCash Runpod Bootstrapper (AI-Dock compatible)
-# Clean install for ComfyUI + nodes + models
+# - Clean first-boot install for ComfyUI + nodes + models
+# - Works with AI-Dock preflight and ComfyUI virtualenv
 # ---------------------------
 
-# ======== Tunables (unchanged) ========
+# ======== Tunables ========
 : "${COMFYUI_REF:=v0.3.50}"     # tag/branch/commit OR "latest"
-: "${AUTO_UPDATE:=true}"
+: "${AUTO_UPDATE:=true}"        # AI-Dock also has its own AUTO_UPDATE; this script is idempotent either way
 : "${WORKSPACE:=/workspace}"
 : "${COMFY_DIR:=${WORKSPACE%/}/ComfyUI}"
 : "${HF_TOKEN:=}"
 : "${CIVITAI_TOKEN:=}"
+
+# Optional default workflow JSON → becomes ComfyUI's defaultGraph.js
 : "${DEFAULT_WORKFLOW:=https://raw.githubusercontent.com/kingaigfcash/aigfcash-runpod-template/main/workflows/default_workflow.json}"
 
 APT_PACKAGES=(
@@ -31,7 +36,6 @@ BASE_PIP_PACKAGES=(
   "timm" "albumentations" "shapely" "soundfile" "pydub"
 )
 
-# ------ Nodes (unchanged list) ------
 NODES=(
   https://github.com/ltdrdata/ComfyUI-Manager
   https://github.com/cubiq/ComfyUI_essentials
@@ -107,6 +111,7 @@ ULTRALYTICS_BBOX_MODELS=(
 )
 ULTRALYTICS_SEGM_MODELS=( https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt )
 SAM_MODELS=( https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth )
+
 WORKFLOWS=( https://github.com/kingaigfcash/aigfcash-runpod-template.git )
 
 log()  { printf "\e[1;32m[SETUP]\e[0m %s\n" "$*"; }
@@ -136,9 +141,10 @@ have_hf_token() {
   [[ -n "${HF_TOKEN}" ]] && curl -fsSL -H "Authorization: Bearer ${HF_TOKEN}" https://huggingface.co/api/whoami-v2 >/dev/null
 }
 
-# Robust downloader
+# Robust downloader with minimal corruption guard
 fetch() {
-  local url="$1" out="$2"; shift 2 || true
+  local url="$1" out="$2"
+  shift 2 || true
   local auth=()
   [[ "$url" =~ ^https://huggingface\.co ]] && [[ -n "${HF_TOKEN}" ]] && auth=(-H "Authorization: Bearer ${HF_TOKEN}")
   [[ "$url" =~ ^https://civitai\.com ]]    && [[ -n "${CIVITAI_TOKEN}" ]] && auth=(-H "Authorization: Bearer ${CIVITAI_TOKEN}")
@@ -148,87 +154,10 @@ fetch() {
     if [[ -s "$out" && $(stat -c%s "$out") -ge 262144 ]]; then
       echo OK; return 0
     fi
-    warn "download retry $i: $url"; sleep 2
+    warn "download retry $i: $url"
+    sleep 2
   done
   return 1
-}
-
-# ---------- NEW: detect Torch & channel; pin TorchAudio/TorchVision accordingly ----------
-detect_torch() {
-  pyx - <<'PY'
-import torch, re, json
-ver = re.sub(r'\+.*$', '', torch.__version__)
-cuda = torch.version.cuda or ''
-chan = 'cpu' if not cuda else ('cu' + cuda.replace('.', ''))
-print(json.dumps({"torch": ver, "cuda": cuda, "channel": chan}))
-PY
-}
-pin_torch_family() {
-  log "Pinning Torch family (torchvision/torchaudio) to match installed torch..."
-  local js; js="$(detect_torch)"
-  local TORCH_BASE_VER CU_CHAN
-  TORCH_BASE_VER="$(python3 - <<PY
-import json,sys; d=json.loads(sys.argv[1]); print(d["torch"])
-PY
-"${js}")"
-  CU_CHAN="$(python3 - <<PY
-import json,sys; d=json.loads(sys.argv[1]); print(d["channel"])
-PY
-"${js}")"
-
-  # Map torchvision/torchaudio to torch — see PyTorch docs/prev versions. 
-  # 2.4.x→0.19.1/2.4.1, 2.5.x→0.20.1/2.5.1, 2.6.x→0.21.0/2.6.0,
-  # 2.7.x→0.22.1/2.7.x, 2.8.x→0.23.0/2.8.0
-  local TV="" TA=""
-  case "$TORCH_BASE_VER" in
-    2.4.*) TV="0.19.1"; TA="2.4.1" ;;
-    2.5.*) TV="0.20.1"; TA="2.5.1" ;;
-    2.6.*) TV="0.21.0"; TA="2.6.0" ;;
-    2.7.*) TV="0.22.1"; TA="${TORCH_BASE_VER%%.*.*}.7.0"; TA="2.7.0" ;;  # normalize to 2.7.0
-    2.8.*) TV="0.23.0"; TA="2.8.0" ;;
-    *) warn "Unknown torch $TORCH_BASE_VER; will skip pinning"; return 0 ;;
-  esac
-
-  local INDEX_URL="https://download.pytorch.org/whl/${CU_CHAN}"
-  [[ "$CU_CHAN" == "cpu" ]] && INDEX_URL="https://download.pytorch.org/whl/cpu"
-
-  # Ensure clean re-install of vision/audio WITHOUT changing torch
-  pipx uninstall -y torchvision torchaudio >/dev/null 2>&1 || true
-  pipx install --no-cache-dir --index-url "$INDEX_URL" \
-      "torchvision==${TV}" "torchaudio==${TA}" --no-deps --force-reinstall || true
-}
-
-# ---------- NEW: build constraints file to prevent nodes from changing Torch ----------
-write_torch_constraints() {
-  local out="$1"
-  local js; js="$(detect_torch)"
-  local TORCH_BASE_VER CU_CHAN
-  TORCH_BASE_VER="$(python3 - <<PY
-import json,sys; d=json.loads(sys.argv[1]); print(d["torch"])
-PY
-"${js}")"
-  CU_CHAN="$(python3 - <<PY
-import json,sys; d=json.loads(sys.argv[1]); print(d["channel"])
-PY
-"${js}")"
-
-  local TV="" TA=""
-  case "$TORCH_BASE_VER" in
-    2.4.*) TV="0.19.1"; TA="2.4.1" ;;
-    2.5.*) TV="0.20.1"; TA="2.5.1" ;;
-    2.6.*) TV="0.21.0"; TA="2.6.0" ;;
-    2.7.*) TV="0.22.1"; TA="2.7.0" ;;
-    2.8.*) TV="0.23.0"; TA="2.8.0" ;;
-    *) TV=""; TA="";;
-  esac
-
-  : > "$out"
-  echo "torch==${TORCH_BASE_VER}" >> "$out"
-  [[ -n "$TV" ]] && echo "torchvision==${TV}" >> "$out"
-  [[ -n "$TA" ]] && echo "torchaudio==${TA}" >> "$out"
-
-  # Export helper for caller
-  echo "$CU_CHAN"
 }
 
 prepare_env() {
@@ -254,6 +183,7 @@ clone_comfyui() {
         COMFYUI_REF="$(git describe --tags "$(git rev-list --tags --max-count=1)")"
       fi
       git checkout -f "${COMFYUI_REF}"
+      # No plain 'git pull' on detached HEAD; update only if on a branch
       if git rev-parse --abbrev-ref HEAD | grep -vq '^HEAD$'; then git pull --ff-only || true; fi
     )
   else
@@ -277,14 +207,41 @@ install_python_base() {
   pipx uninstall -y opencv-python opencv-python-headless >/dev/null 2>&1 || true
   pipx install --no-cache-dir "opencv-contrib-python-headless==4.10.0.84"
 
-  # Install ComfyUI exact requirements for the checked-out tag
+  # === CHANGED: pre-pin torchvision/torchaudio to match *detected* torch & CUDA channel ===
+  if pyx -c 'import torch; print(torch.__version__)' >/dev/null 2>&1; then
+    local TORCH_BASE_VER CUDA_CHAN TV TA tv_url
+    TORCH_BASE_VER="$(pyx - <<'PY'
+import torch, re
+print(re.sub(r'\+.*$','', torch.__version__))
+PY
+)"
+    CUDA_CHAN="$(pyx - <<'PY'
+import torch
+print(('cu' + torch.version.cuda.replace('.','')) if torch.version.cuda else 'cpu')
+PY
+)"
+    case "$CUDA_CHAN" in
+      cpu)   tv_url="https://download.pytorch.org/whl/cpu" ;;
+      *)     tv_url="https://download.pytorch.org/whl/${CUDA_CHAN}" ;;
+    esac
+    case "$TORCH_BASE_VER" in
+      2.4.*) TV="0.19.1"; TA="2.4.1" ;;
+      2.5.*) TV="0.20.1"; TA="2.5.1" ;;
+      2.6.*) TV="0.21.0"; TA="2.6.0" ;;
+      *)     TV=""; TA=""; warn "Unknown torch $TORCH_BASE_VER; skipping torchvision/torchaudio pre-pin" ;;
+    esac
+    if [[ -n "$TV" && -n "$TA" ]]; then
+      pipx uninstall -y torchvision torchaudio >/dev/null 2>&1 || true
+      pipx install --no-cache-dir --index-url "$tv_url" "torchvision==${TV}" "torchaudio==${TA}" --no-deps || true
+    fi
+  fi
+  # (Why: TorchAudio and Torch must be same release; mixing breaks. Official guidance + common error.)  # :contentReference[oaicite:2]{index=2}
+
+  # Install ComfyUI exact requirements (frontend pinned for tag)
   if [[ -f "${COMFY_DIR}/requirements.txt" ]]; then
     log "Installing ComfyUI requirements from ${COMFYUI_REF}..."
     pipx install --no-cache-dir -r "${COMFY_DIR}/requirements.txt"
   fi
-
-  # ---------- NEW: immediately pin torch family to what's already installed ----------
-  pin_torch_family
 }
 
 install_nodes() {
@@ -308,23 +265,45 @@ install_nodes() {
     fi
 
     if [[ -s "$req" ]]; then
-      log "Installing requirements for $dir (with Torch constraints)"
-      local CONSTRAINTS="/tmp/_torch_constraints.txt"
-      local CU_CHAN; CU_CHAN="$(write_torch_constraints "$CONSTRAINTS")"
-      local INDEX_URL="https://download.pytorch.org/whl/${CU_CHAN}"
-      [[ "$CU_CHAN" == "cpu" ]] && INDEX_URL="https://download.pytorch.org/whl/cpu"
+      # === CHANGED: lock torch/vision/audio during node installs (avoid ABI mismatches) ===
+      local TORCH_BASE_VER CUDA_CHAN CONSTRAINTS TV TA tv_url
+      TORCH_BASE_VER="$(pyx - <<'PY'
+import torch, re
+print(re.sub(r'\+.*$','', torch.__version__))
+PY
+)"
+      CUDA_CHAN="$(pyx - <<'PY'
+import torch
+print(('cu' + torch.version.cuda.replace('.','')) if torch.version.cuda else 'cpu')
+PY
+)"
+      case "$CUDA_CHAN" in
+        cpu)   tv_url="https://download.pytorch.org/whl/cpu" ;;
+        *)     tv_url="https://download.pytorch.org/whl/${CUDA_CHAN}" ;;
+      esac
+      case "$TORCH_BASE_VER" in
+        2.4.*) TV="0.19.1"; TA="2.4.1" ;;
+        2.5.*) TV="0.20.1"; TA="2.5.1" ;;
+        2.6.*) TV="0.21.0"; TA="2.6.0" ;;
+        *)     TV=""; TA="";;
+      esac
+      CONSTRAINTS="/tmp/_torch_constraints.txt"
+      : > "$CONSTRAINTS"
+      echo "torch==${TORCH_BASE_VER}" >> "$CONSTRAINTS"
+      [[ -n "$TV" ]] && echo "torchvision==${TV}" >> "$CONSTRAINTS"
+      [[ -n "$TA" ]] && echo "torchaudio==${TA}" >> "$CONSTRAINTS"
 
-      # Respect Torch locks so nodes cannot change torch/vision/audio
+      log "Installing requirements for $dir (with Torch constraints)"
       pipx install --no-cache-dir -r "$req" --constraint "$CONSTRAINTS" \
-        --extra-index-url "$INDEX_URL" || warn "requirements failed for $dir"
+        --extra-index-url "$tv_url" || warn "requirements failed for $dir"
+      # (Why: use PyTorch wheel index per CUDA channel, keep Torch* aligned.)  # :contentReference[oaicite:3]{index=3}
+    else
+      log "No requirements.txt for $dir"
     fi
   done
 
   # Common extras many nodes assume
   pipx install --no-cache-dir ultralytics onnxruntime || true
-
-  # ---------- NEW: re-pin after all nodes (last line of defense) ----------
-  pin_torch_family
 }
 
 install_workflows() {
@@ -334,7 +313,7 @@ install_workflows() {
     local name; name="$(basename "$repo" .git)"
     local temp="/tmp/$name"
     local target="${COMFY_DIR}/user/default/workflows"
-    if [[ -d "$temp/.git" ]]; then
+    if [[ -d "$temp/.git" ]] && [[ -d "$target" ]]; then
       (cd "$temp" && git pull --rebase --autostash || true)
     else
       git clone "$repo" "$temp" || true
@@ -390,10 +369,10 @@ post_checks() {
   pyx - <<'PY' || true
 try:
     import comfy
-    import torchaudio
-    print("ComfyUI core + torchaudio imports OK")
+    import comfy_extras.nodes_audio  # common extra
+    print("ComfyUI core imports OK")
 except Exception as e:
-    print("[SANITY] Import error:", e)
+    print("[SANITY] Core import error:", e)
 PY
 }
 
