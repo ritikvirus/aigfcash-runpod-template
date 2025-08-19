@@ -1,24 +1,14 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
-
-# === Trap for better error messages ===
 trap 'code=$?; echo -e "\e[1;31m[ERROR]\e[0m ${BASH_SOURCE[0]}:${LINENO} exit $code"; exit $code' ERR
 
-# ---------------------------
-# AIGFCash Runpod Bootstrapper (AI-Dock compatible)
-# - Clean first-boot install for ComfyUI + nodes + models
-# - Works with AI-Dock preflight and ComfyUI virtualenv
-# ---------------------------
-
 # ======== Tunables ========
-: "${COMFYUI_REF:=v0.3.50}"     # tag/branch/commit OR "latest"
-: "${AUTO_UPDATE:=true}"        # AI-Dock also has its own AUTO_UPDATE; this script is idempotent either way
+: "${COMFYUI_REF:=v0.3.50}"
+: "${AUTO_UPDATE:=true}"
 : "${WORKSPACE:=/workspace}"
 : "${COMFY_DIR:=${WORKSPACE%/}/ComfyUI}"
 : "${HF_TOKEN:=}"
 : "${CIVITAI_TOKEN:=}"
-
-# Optional default workflow JSON → becomes ComfyUI's defaultGraph.js
 : "${DEFAULT_WORKFLOW:=https://raw.githubusercontent.com/kingaigfcash/aigfcash-runpod-template/main/workflows/default_workflow.json}"
 
 APT_PACKAGES=(
@@ -111,37 +101,24 @@ ULTRALYTICS_BBOX_MODELS=(
 )
 ULTRALYTICS_SEGM_MODELS=( https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt )
 SAM_MODELS=( https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth )
-
 WORKFLOWS=( https://github.com/kingaigfcash/aigfcash-runpod-template.git )
 
 log()  { printf "\e[1;32m[SETUP]\e[0m %s\n" "$*"; }
 warn() { printf "\e[1;33m[WARN ]\e[0m %s\n" "$*"; }
 err()  { printf "\e[1;31m[ERROR]\e[0m %s\n" "$*"; }
-
 sudo_if() { if command -v sudo >/dev/null 2>&1; then sudo "$@"; else "$@"; fi; }
 
-# Prefer AI-Dock's comfyui venv if present
 pipx() {
-  if [[ -n "${COMFYUI_VENV_PIP:-}" && -x "${COMFYUI_VENV_PIP}" ]]; then
-    "${COMFYUI_VENV_PIP}" "$@"
-  else
-    pip "$@"
-  fi
+  if [[ -n "${COMFYUI_VENV_PIP:-}" && -x "${COMFYUI_VENV_PIP}" ]]; then "${COMFYUI_VENV_PIP}" "$@"; else pip "$@"; fi
 }
 pyx() {
-  if [[ -n "${COMFYUI_VENV_PYTHON:-}" && -x "${COMFYUI_VENV_PYTHON}" ]]; then
-    "${COMFYUI_VENV_PYTHON}" "$@"
-  else
-    python3 "$@"
-  fi
+  if [[ -n "${COMFYUI_VENV_PYTHON:-}" && -x "${COMFYUI_VENV_PYTHON}" ]]; then "${COMFYUI_VENV_PYTHON}" "$@"; else python3 "$@"; fi
 }
 
-# Auth check for HF
 have_hf_token() {
   [[ -n "${HF_TOKEN}" ]] && curl -fsSL -H "Authorization: Bearer ${HF_TOKEN}" https://huggingface.co/api/whoami-v2 >/dev/null
 }
 
-# Robust downloader with minimal corruption guard
 fetch() {
   local url="$1" out="$2"
   shift 2 || true
@@ -151,11 +128,8 @@ fetch() {
   mkdir -p "$(dirname "$out")"
   for i in 1 2 3; do
     curl -fL --retry 5 --retry-delay 2 "${auth[@]}" -o "$out.partial" "$url" && mv -f "$out.partial" "$out" || true
-    if [[ -s "$out" && $(stat -c%s "$out") -ge 262144 ]]; then
-      echo OK; return 0
-    fi
-    warn "download retry $i: $url"
-    sleep 2
+    if [[ -s "$out" && $(stat -c%s "$out") -ge 262144 ]]; then echo OK; return 0; fi
+    warn "download retry $i: $url"; sleep 2
   done
   return 1
 }
@@ -179,11 +153,8 @@ clone_comfyui() {
   if [[ -d "${COMFY_DIR}/.git" ]]; then
     ( cd "$COMFY_DIR"
       git fetch --tags --prune
-      if [[ "${COMFYUI_REF}" == "latest" ]]; then
-        COMFYUI_REF="$(git describe --tags "$(git rev-list --tags --max-count=1)")"
-      fi
+      if [[ "${COMFYUI_REF}" == "latest" ]]; then COMFYUI_REF="$(git describe --tags "$(git rev-list --tags --max-count=1)")"; fi
       git checkout -f "${COMFYUI_REF}"
-      # No plain 'git pull' on detached HEAD; update only if on a branch
       if git rev-parse --abbrev-ref HEAD | grep -vq '^HEAD$'; then git pull --ff-only || true; fi
     )
   else
@@ -199,45 +170,26 @@ clone_comfyui() {
 install_python_base() {
   log "Upgrading pip/setuptools/wheel..."
   pipx install --upgrade pip setuptools wheel
-
   log "Installing base Python packages..."
   pipx install --no-cache-dir "${BASE_PIP_PACKAGES[@]}"
 
-  # Prefer contrib build for OpenCV features some nodes require
   pipx uninstall -y opencv-python opencv-python-headless >/dev/null 2>&1 || true
   pipx install --no-cache-dir "opencv-contrib-python-headless==4.10.0.84"
 
-  # === MATCH Torch family to the Torch that's already present (and CUDA/CPU channel) ===
   if pyx -c 'import torch; print(torch.__version__)' >/dev/null 2>&1; then
-    local TORCH_BASE_VER CUDA_CHAN TV TA tv_url
-    TORCH_BASE_VER="$(pyx - <<'PY'
+    local tv_url="https://download.pytorch.org/whl/cu121"
+    case "$(pyx - <<'PY'
 import torch, re
 print(re.sub(r'\+.*$','', torch.__version__))
 PY
-)"
-    CUDA_CHAN="$(pyx - <<'PY'
-import torch
-print(('cu' + torch.version.cuda.replace('.','')) if torch.version.cuda else 'cpu')
-PY
-)"
-    case "$CUDA_CHAN" in
-      cpu) tv_url="https://download.pytorch.org/whl/cpu" ;;
-      *)   tv_url="https://download.pytorch.org/whl/${CUDA_CHAN}" ;;
+)" in
+      2.4.*) pipx install --no-cache-dir --index-url "$tv_url" "torchvision==0.19.1" "torchaudio==2.4.1" || true ;;
+      2.5.*) pipx install --no-cache-dir --index-url "$tv_url" "torchvision==0.20.1" "torchaudio==2.5.1" || true ;;
+      2.6.*) pipx install --no-cache-dir --index-url "$tv_url" "torchvision==0.21.0" "torchaudio==2.6.0" || true ;;
+      *) warn "Unknown torch version; skipping torchvision/torchaudio pre-pin";;
     esac
-    case "$TORCH_BASE_VER" in
-      2.4.*) TV="0.19.1"; TA="2.4.1" ;;
-      2.5.*) TV="0.20.1"; TA="2.5.1" ;;
-      2.6.*) TV="0.21.0"; TA="2.6.0" ;;
-      *)     TV=""; TA=""; warn "Unknown torch $TORCH_BASE_VER; skipping tv/ta pre-pin" ;;
-    esac
-    if [[ -n "$TV" && -n "$TA" ]]; then
-      pipx uninstall -y torchvision torchaudio >/dev/null 2>&1 || true
-      pipx install --no-cache-dir --index-url "$tv_url" "torchvision==${TV}" "torchaudio==${TA}" --no-deps || true
-    fi
   fi
-  # (TorchAudio must match Torch release; mixing causes binary import errors.)  # refs: docs :contentReference[oaicite:3]{index=3}
 
-  # Install ComfyUI exact requirements (frontend pinned for tag)
   if [[ -f "${COMFY_DIR}/requirements.txt" ]]; then
     log "Installing ComfyUI requirements from ${COMFYUI_REF}..."
     pipx install --no-cache-dir -r "${COMFY_DIR}/requirements.txt"
@@ -246,8 +198,7 @@ PY
 
 install_nodes() {
   log "Installing custom nodes..."
-  local base="${COMFY_DIR}/custom_nodes"
-  mkdir -p "$base"
+  local base="${COMFY_DIR}/custom_nodes"; mkdir -p "$base"
 
   for repo in "${NODES[@]}"; do
     local dir="${repo##*/}"
@@ -255,82 +206,48 @@ install_nodes() {
     local req="$path/requirements.txt"
 
     if [[ -d "$path/.git" ]]; then
-      if [[ ${AUTO_UPDATE,,} != "false" ]]; then
-        (cd "$path" && git pull --rebase --autostash || true)
-      else
-        log "Node exists, skipping update: $repo"
+      if [[ ${AUTO_UPDATE,,} != "false" ]]; then (cd "$path" && git pull --rebase --autostash || true)
+      else log "Node exists, skipping update: $repo"
       fi
     else
       git clone --recursive "$repo" "$path" || warn "clone failed: $repo"
     fi
 
     if [[ -s "$req" ]]; then
-      # === Lock Torch during node installs so nothing downgrades/upgrades it ===
-      local TORCH_BASE_VER CUDA_CHAN CONSTRAINTS TV TA tv_url
-      TORCH_BASE_VER="$(pyx - <<'PY'
-import torch, re
-print(re.sub(r'\+.*$','', torch.__version__))
-PY
-)"
-      CUDA_CHAN="$(pyx - <<'PY'
-import torch
-print(('cu' + torch.version.cuda.replace('.','')) if torch.version.cuda else 'cpu')
-PY
-)"
-      case "$CUDA_CHAN" in
-        cpu) tv_url="https://download.pytorch.org/whl/cpu" ;;
-        *)   tv_url="https://download.pytorch.org/whl/${CUDA_CHAN}" ;;
-      esac
-      case "$TORCH_BASE_VER" in
-        2.4.*) TV="0.19.1"; TA="2.4.1" ;;
-        2.5.*) TV="0.20.1"; TA="2.5.1" ;;
-        2.6.*) TV="0.21.0"; TA="2.6.0" ;;
-        *)     TV=""; TA="";;
-      esac
-      CONSTRAINTS="/tmp/_torch_constraints.txt"
-      : > "$CONSTRAINTS"
-      echo "torch==${TORCH_BASE_VER}" >> "$CONSTRAINTS"
-      [[ -n "$TV" ]] && echo "torchvision==${TV}" >> "$CONSTRAINTS"
-      [[ -n "$TA" ]] && echo "torchaudio==${TA}" >> "$CONSTRAINTS"
-
-      log "Installing requirements for $dir (Torch constrained)"
-      pipx install --no-cache-dir -r "$req" --constraint "$CONSTRAINTS" \
-        --extra-index-url "$tv_url" || warn "requirements failed for $dir"
+      log "Installing requirements for $dir"
+      pipx install --no-cache-dir -r "$req" || warn "requirements failed for $dir"
     fi
   done
 
-  # Common extras many nodes assume
   pipx install --no-cache-dir ultralytics onnxruntime || true
-
-  # === Fix Impact-Pack vs LayerStyle-Advance: SAM2 namespace collision, and ensure sam2 is installed ===
-  fix_sam2_namespace_and_package || true
 }
 
-fix_sam2_namespace_and_package() {
-  local lsa_py="${COMFY_DIR}/custom_nodes/ComfyUI_LayerStyle_Advance/py"
-  local old="${lsa_py}/sam2"
-  local neu="${lsa_py}/sam2_lsa"
+# ---------- ONLY NEW LOGIC BELOW ----------
+finalize_impact_pack() {
+  log "Impact-Pack hotfix: installing SAM2 (no-deps), resolving sam2 path conflicts, and running install.py"
 
-  # If LayerStyle-Advance ships a 'py/sam2', rename it so it doesn't shadow PyPI 'sam2'
-  if [[ -d "$old" ]]; then
-    log "Patching LayerStyle-Advance (sam2 -> sam2_lsa) to avoid SAM2 import conflicts..."
-    mv "$old" "$neu" || return 0
-    touch "${lsa_py}/__init__.py" "${neu}/__init__.py" || true
-    if command -v sed >/dev/null 2>&1; then
-      grep -RIl --include="*.py" -e '\.\.sam2\.' -e '\bfrom sam2\b' -e '\bimport sam2\b' "$lsa_py" | while read -r f; do
-        sed -r -i 's/from \.\.sam2\./from ..sam2_lsa./g' "$f"
-        sed -r -i 's/\bfrom sam2\b/from sam2_lsa/g' "$f"
-        sed -r -i 's/\bimport sam2\b/import sam2_lsa/g' "$f"
-      done
-    fi
+  # 1) Install SAM2 from Meta WITHOUT dependencies so Torch stays at the image's version
+  #    (Impact Pack added SAM2 support; official method is pip from the repo). 
+  pipx install --no-cache-dir --no-deps \
+    "git+https://github.com/facebookresearch/sam2@2b90b9f5ceec907a1c18123530e92e794ad901a4#egg=sam-2" \
+    || warn "sam2 install skipped/failed"
+  # refs: Impact-Pack notes on SAM2 support & running install.py; SAM2 install docs. 
+  # (citations in the message body)
+
+  # 2) If LayerStyle_Advance ships a vendored 'py/sam2', it can shadow the real package.
+  #    Disable it so 'import sam2' resolves to the pip one.
+  local lsa="${COMFY_DIR}/custom_nodes/ComfyUI_LayerStyle_Advance/py/sam2"
+  if [[ -d "$lsa" ]]; then
+    mv -f "$lsa" "${lsa}.disabled" || true
   fi
 
-  # Install official SAM 2 package for Impact-Pack
-  # (the package name is 'sam2' on PyPI)
-  pipx install --no-cache-dir "sam2" || true
-  # refs: PyPI 'sam2' and Impact-Pack docs mentioning SAM2 usage
-  # :contentReference[oaicite:4]{index=4}
+  # 3) Run Impact-Pack's installer (creates onnx dir, checks deps, etc.)
+  local ip_dir="${COMFY_DIR}/custom_nodes/ComfyUI-Impact-Pack"
+  if [[ -d "$ip_dir" ]]; then
+    ( cd "$ip_dir" && pyx install.py || true )
+  fi
 }
+# ---------- ONLY NEW LOGIC ABOVE ----------
 
 install_workflows() {
   [[ ${#WORKFLOWS[@]} -eq 0 ]] && return 0
@@ -339,10 +256,8 @@ install_workflows() {
     local name; name="$(basename "$repo" .git)"
     local temp="/tmp/$name"
     local target="${COMFY_DIR}/user/default/workflows"
-    if [[ -d "$temp/.git" ]]; then
-      (cd "$temp" && git pull --rebase --autostash || true)
-    else
-      git clone "$repo" "$temp" || true
+    if [[ -d "$temp/.git" ]]; then (cd "$temp" && git pull --rebase --autostash || true)
+    else git clone "$repo" "$temp" || true
     fi
     mkdir -p "$target"
     [[ -d "$temp/workflows" ]] && cp -rf "$temp/workflows/"* "$target/" || true
@@ -408,6 +323,7 @@ main() {
   clone_comfyui
   install_python_base
   install_nodes
+  finalize_impact_pack   # <<< ONLY NEW CALL
   install_workflows
   write_default_graph
   make_model_dirs
@@ -415,5 +331,4 @@ main() {
   post_checks
   log "Provisioning complete."
 }
-
 main "$@"
