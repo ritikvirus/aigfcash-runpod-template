@@ -166,6 +166,8 @@ prepare_env() {
   [[ -f /opt/ai-dock/bin/venv-set.sh    ]] && source /opt/ai-dock/bin/venv-set.sh comfyui
   umask 002
   mkdir -p "${COMFY_DIR%/*}"
+  # NEW: set model path so Impact Pack doesn't warn
+  export COMFYUI_MODEL_PATH="${COMFY_DIR}/models"
 }
 
 install_apt() {
@@ -183,7 +185,6 @@ clone_comfyui() {
         COMFYUI_REF="$(git describe --tags "$(git rev-list --tags --max-count=1)")"
       fi
       git checkout -f "${COMFYUI_REF}"
-      # No plain 'git pull' on detached HEAD; update only if on a branch
       if git rev-parse --abbrev-ref HEAD | grep -vq '^HEAD$'; then git pull --ff-only || true; fi
     )
   else
@@ -207,35 +208,20 @@ install_python_base() {
   pipx uninstall -y opencv-python opencv-python-headless >/dev/null 2>&1 || true
   pipx install --no-cache-dir "opencv-contrib-python-headless==4.10.0.84"
 
-  # === MATCH Torch family to the Torch that's already present (and CUDA/CPU channel) ===
+  # Pre-pin torchvision/torchaudio to match torch in the image
   if pyx -c 'import torch; print(torch.__version__)' >/dev/null 2>&1; then
-    local TORCH_BASE_VER CUDA_CHAN TV TA tv_url
-    TORCH_BASE_VER="$(pyx - <<'PY'
+    local tv_url="https://download.pytorch.org/whl/cu121"
+    case "$(pyx - <<'PY'
 import torch, re
 print(re.sub(r'\+.*$','', torch.__version__))
 PY
-)"
-    CUDA_CHAN="$(pyx - <<'PY'
-import torch
-print(('cu' + torch.version.cuda.replace('.','')) if torch.version.cuda else 'cpu')
-PY
-)"
-    case "$CUDA_CHAN" in
-      cpu) tv_url="https://download.pytorch.org/whl/cpu" ;;
-      *)   tv_url="https://download.pytorch.org/whl/${CUDA_CHAN}" ;;
+)" in
+      2.4.*) pipx install --no-cache-dir --index-url "$tv_url" "torchvision==0.19.1" "torchaudio==2.4.1" || true ;;
+      2.5.*) pipx install --no-cache-dir --index-url "$tv_url" "torchvision==0.20.1" "torchaudio==2.5.1" || true ;;
+      2.6.*) pipx install --no-cache-dir --index-url "$tv_url" "torchvision==0.21.0" "torchaudio==2.6.0" || true ;;
+      *) warn "Unknown torch version; skipping torchvision/torchaudio pre-pin";;
     esac
-    case "$TORCH_BASE_VER" in
-      2.4.*) TV="0.19.1"; TA="2.4.1" ;;
-      2.5.*) TV="0.20.1"; TA="2.5.1" ;;
-      2.6.*) TV="0.21.0"; TA="2.6.0" ;;
-      *)     TV=""; TA=""; warn "Unknown torch $TORCH_BASE_VER; skipping tv/ta pre-pin" ;;
-    esac
-    if [[ -n "$TV" && -n "$TA" ]]; then
-      pipx uninstall -y torchvision torchaudio >/dev/null 2>&1 || true
-      pipx install --no-cache-dir --index-url "$tv_url" "torchvision==${TV}" "torchaudio==${TA}" --no-deps || true
-    fi
   fi
-  # (TorchAudio must match Torch release; mixing causes binary import errors.)  # refs: docs :contentReference[oaicite:3]{index=3}
 
   # Install ComfyUI exact requirements (frontend pinned for tag)
   if [[ -f "${COMFY_DIR}/requirements.txt" ]]; then
@@ -265,71 +251,64 @@ install_nodes() {
     fi
 
     if [[ -s "$req" ]]; then
-      # === Lock Torch during node installs so nothing downgrades/upgrades it ===
-      local TORCH_BASE_VER CUDA_CHAN CONSTRAINTS TV TA tv_url
-      TORCH_BASE_VER="$(pyx - <<'PY'
-import torch, re
-print(re.sub(r'\+.*$','', torch.__version__))
-PY
-)"
-      CUDA_CHAN="$(pyx - <<'PY'
-import torch
-print(('cu' + torch.version.cuda.replace('.','')) if torch.version.cuda else 'cpu')
-PY
-)"
-      case "$CUDA_CHAN" in
-        cpu) tv_url="https://download.pytorch.org/whl/cpu" ;;
-        *)   tv_url="https://download.pytorch.org/whl/${CUDA_CHAN}" ;;
-      esac
-      case "$TORCH_BASE_VER" in
-        2.4.*) TV="0.19.1"; TA="2.4.1" ;;
-        2.5.*) TV="0.20.1"; TA="2.5.1" ;;
-        2.6.*) TV="0.21.0"; TA="2.6.0" ;;
-        *)     TV=""; TA="";;
-      esac
-      CONSTRAINTS="/tmp/_torch_constraints.txt"
-      : > "$CONSTRAINTS"
-      echo "torch==${TORCH_BASE_VER}" >> "$CONSTRAINTS"
-      [[ -n "$TV" ]] && echo "torchvision==${TV}" >> "$CONSTRAINTS"
-      [[ -n "$TA" ]] && echo "torchaudio==${TA}" >> "$CONSTRAINTS"
-
-      log "Installing requirements for $dir (Torch constrained)"
-      pipx install --no-cache-dir -r "$req" --constraint "$CONSTRAINTS" \
-        --extra-index-url "$tv_url" || warn "requirements failed for $dir"
+      log "Installing requirements for $dir"
+      pipx install --no-cache-dir -r "$req" || warn "requirements failed for $dir"
     fi
   done
 
   # Common extras many nodes assume
   pipx install --no-cache-dir ultralytics onnxruntime || true
-
-  # === Fix Impact-Pack vs LayerStyle-Advance: SAM2 namespace collision, and ensure sam2 is installed ===
-  fix_sam2_namespace_and_package || true
 }
 
-fix_sam2_namespace_and_package() {
-  local lsa_py="${COMFY_DIR}/custom_nodes/ComfyUI_LayerStyle_Advance/py"
-  local old="${lsa_py}/sam2"
-  local neu="${lsa_py}/sam2_lsa"
-
-  # If LayerStyle-Advance ships a 'py/sam2', rename it so it doesn't shadow PyPI 'sam2'
-  if [[ -d "$old" ]]; then
-    log "Patching LayerStyle-Advance (sam2 -> sam2_lsa) to avoid SAM2 import conflicts..."
-    mv "$old" "$neu" || return 0
-    touch "${lsa_py}/__init__.py" "${neu}/__init__.py" || true
-    if command -v sed >/dev/null 2>&1; then
-      grep -RIl --include="*.py" -e '\.\.sam2\.' -e '\bfrom sam2\b' -e '\bimport sam2\b' "$lsa_py" | while read -r f; do
-        sed -r -i 's/from \.\.sam2\./from ..sam2_lsa./g' "$f"
-        sed -r -i 's/\bfrom sam2\b/from sam2_lsa/g' "$f"
-        sed -r -i 's/\bimport sam2\b/import sam2_lsa/g' "$f"
-      done
-    fi
+# NEW: seed minimal CSVs for Universal Styler (only if missing)
+seed_universal_styler_csvs() {
+  local us_dir="${COMFY_DIR}/custom_nodes/ComfyUI-Universal-Styler"
+  [[ -d "$us_dir" ]] || return 0
+  log "Seeding ComfyUI-Universal-Styler CSV database (if missing)..."
+  # styles.csv (expected: first col is name, next two cols positive/negative)
+  if [[ ! -s "$us_dir/styles.csv" ]]; then
+    cat > "$us_dir/styles.csv" <<'CSV'
+style_name,positive_prompt,negative_prompt
+Photorealistic portrait,"high detail, realistic skin, 85mm, natural lighting","lowres, blurry, artifacts"
+Cinematic,"cinematic lighting, film grain, dramatic contrast","washed out, overexposed"
+CSV
   fi
-
-  # Install official SAM 2 package for Impact-Pack
-  # (the package name is 'sam2' on PyPI)
-  pipx install --no-cache-dir "sam2" || true
-  # refs: PyPI 'sam2' and Impact-Pack docs mentioning SAM2 usage
-  # :contentReference[oaicite:4]{index=4}
+  # simple two-column CSVs used for selections; headers ignored by loader
+  if [[ ! -s "$us_dir/cameras.csv" ]]; then
+    cat > "$us_dir/cameras.csv" <<'CSV'
+name,prompt
+Close-up,"close-up, 85mm lens, shallow depth of field"
+Wide,"wide angle, 24mm lens, expansive view"
+CSV
+  fi
+  if [[ ! -s "$us_dir/lightings.csv" ]]; then
+    cat > "$us_dir/lightings.csv" <<'CSV'
+name,prompt
+Soft daylight,"soft daylight, diffuse shadows"
+Golden hour,"warm golden hour light, long shadows"
+CSV
+  fi
+  if [[ ! -s "$us_dir/motions.csv" ]]; then
+    cat > "$us_dir/motions.csv" <<'CSV'
+name,prompt
+Static,"static scene"
+Slow pan,"slow camera pan left to right"
+CSV
+  fi
+  if [[ ! -s "$us_dir/scenes.csv" ]]; then
+    cat > "$us_dir/scenes.csv" <<'CSV'
+name,prompt
+Studio portrait,"clean studio background, seamless paper"
+Outdoor street,"urban street, depth, background bokeh"
+CSV
+  fi
+  if [[ ! -s "$us_dir/agents.csv" ]]; then
+    cat > "$us_dir/agents.csv" <<'CSV'
+agent_name,role,instruction
+Director,composition,"ensure balanced framing and leading lines"
+Colorist,color,"favor natural skin tones and subtle contrast"
+CSV
+  fi
 }
 
 install_workflows() {
@@ -408,6 +387,7 @@ main() {
   clone_comfyui
   install_python_base
   install_nodes
+  seed_universal_styler_csvs   # <— NEW: stop Universal Styler CSV errors
   install_workflows
   write_default_graph
   make_model_dirs
