@@ -166,8 +166,6 @@ prepare_env() {
   [[ -f /opt/ai-dock/bin/venv-set.sh    ]] && source /opt/ai-dock/bin/venv-set.sh comfyui
   umask 002
   mkdir -p "${COMFY_DIR%/*}"
-  # NEW: set model path so Impact Pack doesn't warn
-  export COMFYUI_MODEL_PATH="${COMFY_DIR}/models"
 }
 
 install_apt() {
@@ -185,6 +183,7 @@ clone_comfyui() {
         COMFYUI_REF="$(git describe --tags "$(git rev-list --tags --max-count=1)")"
       fi
       git checkout -f "${COMFYUI_REF}"
+      # No plain 'git pull' on detached HEAD; update only if on a branch
       if git rev-parse --abbrev-ref HEAD | grep -vq '^HEAD$'; then git pull --ff-only || true; fi
     )
   else
@@ -260,54 +259,19 @@ install_nodes() {
   pipx install --no-cache-dir ultralytics onnxruntime || true
 }
 
-# NEW: seed minimal CSVs for Universal Styler (only if missing)
-seed_universal_styler_csvs() {
-  local us_dir="${COMFY_DIR}/custom_nodes/ComfyUI-Universal-Styler"
-  [[ -d "$us_dir" ]] || return 0
-  log "Seeding ComfyUI-Universal-Styler CSV database (if missing)..."
-  # styles.csv (expected: first col is name, next two cols positive/negative)
-  if [[ ! -s "$us_dir/styles.csv" ]]; then
-    cat > "$us_dir/styles.csv" <<'CSV'
-style_name,positive_prompt,negative_prompt
-Photorealistic portrait,"high detail, realistic skin, 85mm, natural lighting","lowres, blurry, artifacts"
-Cinematic,"cinematic lighting, film grain, dramatic contrast","washed out, overexposed"
-CSV
-  fi
-  # simple two-column CSVs used for selections; headers ignored by loader
-  if [[ ! -s "$us_dir/cameras.csv" ]]; then
-    cat > "$us_dir/cameras.csv" <<'CSV'
-name,prompt
-Close-up,"close-up, 85mm lens, shallow depth of field"
-Wide,"wide angle, 24mm lens, expansive view"
-CSV
-  fi
-  if [[ ! -s "$us_dir/lightings.csv" ]]; then
-    cat > "$us_dir/lightings.csv" <<'CSV'
-name,prompt
-Soft daylight,"soft daylight, diffuse shadows"
-Golden hour,"warm golden hour light, long shadows"
-CSV
-  fi
-  if [[ ! -s "$us_dir/motions.csv" ]]; then
-    cat > "$us_dir/motions.csv" <<'CSV'
-name,prompt
-Static,"static scene"
-Slow pan,"slow camera pan left to right"
-CSV
-  fi
-  if [[ ! -s "$us_dir/scenes.csv" ]]; then
-    cat > "$us_dir/scenes.csv" <<'CSV'
-name,prompt
-Studio portrait,"clean studio background, seamless paper"
-Outdoor street,"urban street, depth, background bokeh"
-CSV
-  fi
-  if [[ ! -s "$us_dir/agents.csv" ]]; then
-    cat > "$us_dir/agents.csv" <<'CSV'
-agent_name,role,instruction
-Director,composition,"ensure balanced framing and leading lines"
-Colorist,color,"favor natural skin tones and subtle contrast"
-CSV
+# === Impact Pack SAM2 fix (no other changes to your setup) ===
+finalize_impact_pack() {
+  local ip="${COMFY_DIR}/custom_nodes/ComfyUI-Impact-Pack"
+  if [[ -d "$ip" ]]; then
+    log "Installing SAM2 (no-deps, pinned) to satisfy Impact Pack without touching Torch..."
+    # Commit matches what ComfyUI-Manager used in your logs; --no-deps prevents Torch upgrades.
+    pipx install --no-cache-dir --no-deps "git+https://github.com/facebookresearch/sam2@2b90b9f5ceec907a1c18123530e92e794ad901a4" || warn "SAM2 no-deps install skipped"
+
+    # Run Impact Pack installer (same as the Manager 'Try to Fix' button)
+    if [[ -f "$ip/install.py" ]]; then
+      log "Running Impact Pack install.py"
+      ( cd "$ip" && pyx install.py ) || warn "Impact Pack install.py reported an issue"
+    fi
   fi
 }
 
@@ -387,7 +351,7 @@ main() {
   clone_comfyui
   install_python_base
   install_nodes
-  seed_universal_styler_csvs   # <— NEW: stop Universal Styler CSV errors
+  finalize_impact_pack       # <-- ONLY added step
   install_workflows
   write_default_graph
   make_model_dirs
